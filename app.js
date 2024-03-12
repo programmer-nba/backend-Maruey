@@ -25,10 +25,16 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cor())
 //router
-const prefix = '/v1/Backend-Smartpro'
+const prefix = '/v1/Backend-Maruey'
 app.use(prefix+'/', require('./routes/index'));
 //ผู้ใช้งาน
-app.use(prefix+'/user',require('./routes/user/user'))
+app.use(prefix+'/admin',require('./routes/admin/admin'))
+//ล็อคอิน(admin,dealer,partner)
+app.use(prefix+'/login',require('./routes/login/login'))
+//dealer คู่ค้า
+app.use(prefix+'/dealer',require('./routes/dealer/dealer'))
+// partner 
+app.use(prefix+'/partner',require('./routes/partner/partner'))
 
 
 app.use((req, res, next) => {
@@ -36,5 +42,6 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     next();
 });
-const port = process.env.PORT || 3252;
+
+const port = process.env.PORT || 5713;
 app.listen(port, console.log(`Listening on port ${port}`));

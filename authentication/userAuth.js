@@ -1,231 +1,182 @@
 const jwt = require('jsonwebtoken');
 
-const verifyTokenadmin = async(req, res, next)=>{
+const admin = async(req, res, next)=>{
     try{
 
         let token = req.headers["token"]
-        const secretKey = "i#ngikanei;#aooldkhfa'"
         //เช็ค token
-        if(!token){
-            return res.status(403).send({status:false,message:'ไม่มี token'});
+        if(token == "" || token == null || token == undefined){
+            return res.status(403).send({status:false,message:'กรุณากรอก token'});
         }
-
-        // ทำการยืนยันสิทธิ์ token
-        const decoded =  jwt.verify(token,secretKey)
-        if(decoded.position ==="admin" || decoded.position ==="Manager Department" ){
-            req.users = decoded.data
-            next();
+        const secretKey = "i#ngikanei;#aooldkhfa'"
+        //เช็ค if ว่า 6ตัวแรก มีคำว่า Bearer ไหม
+        if (token.startsWith("Bearer ")) {
+            token = token.replace(/^Bearer\s+/, "");
+            // ทำการยืนยันสิทธิ์ token
+            const decoded =  jwt.verify(token,secretKey)
+            if(decoded.row ==="admin"){
+                req.users = decoded.data
+                next();
+            }else{
+                return res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
+            }
         }else{
-            res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
+            return res.status(403).send({status:false,message:'token ไม่ถูกต้องตามรบบ '})
         }
         
-        
     }catch (err){
-        return res.status(500).send({error:err})
+        return res.status(500).send({error:err.message})
     }
 }
-
-const sales = async (req,res,next) =>{
+const dealer = async(req, res, next)=>{
     try{
 
         let token = req.headers["token"]
-        const secretKey = "i#ngikanei;#aooldkhfa'"
         //เช็ค token
-        if(!token){
-            return res.status(403).send({status:false,message:'ไม่มี token'});
+        if(token == "" || token == null || token == undefined){
+            return res.status(403).send({status:false,message:'กรุณากรอก token'});
         }
-
-        // ทำการยืนยันสิทธิ์ token
-        const decoded =  jwt.verify(token,secretKey)
-        if(decoded.position ==="Sales Department" || decoded.position ==="Manager Department"){
-            req.users = decoded.data
-            next();
+        const secretKey = "i#ngikanei;#aooldkhfa'"
+        //เช็ค if ว่า 6ตัวแรก มีคำว่า Bearer ไหม
+        if (token.startsWith("Bearer ")) {
+            token = token.replace(/^Bearer\s+/, "");
+            // ทำการยืนยันสิทธิ์ token
+            const decoded =  jwt.verify(token,secretKey)
+            if(decoded.row ==="dealer"){
+                req.users = decoded.data
+                next();
+            }else{
+                return res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
+            }
         }else{
-            res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
+            return res.status(403).send({status:false,message:'token ไม่ถูกต้องตามรบบ '})
         }
         
-        
     }catch (err){
-        return res.status(500).send({error:err})
+        return res.status(500).send({error:err.message})
     }
 }
 
-const procurement = async (req,res,next) =>{
+const adminanddealer = async(req, res, next)=>{
     try{
 
         let token = req.headers["token"]
-        const secretKey = "i#ngikanei;#aooldkhfa'"
         //เช็ค token
-        if(!token){
-            return res.status(403).send({status:false,message:'ไม่มี token'});
+        if(token == "" || token == null || token == undefined){
+            return res.status(403).send({status:false,message:'กรุณากรอก token'});
         }
-
-        // ทำการยืนยันสิทธิ์ token
-        const decoded =  jwt.verify(token,secretKey)
-        if(decoded.position ==="Procurement Department" || decoded.position ==="Logistic & Shipping Department" || decoded.position ==="Manager Department"){
-            req.users = decoded.data
-            next();
+        const secretKey = "i#ngikanei;#aooldkhfa'"
+        //เช็ค if ว่า 6ตัวแรก มีคำว่า Bearer ไหม
+        if (token.startsWith("Bearer ")) {
+            token = token.replace(/^Bearer\s+/, "");
+            // ทำการยืนยันสิทธิ์ token
+            const decoded =  jwt.verify(token,secretKey)
+            if(decoded.row ==="admin" || decoded.row ==="dealer"){
+                req.users = decoded.data
+                next();
+            }else{
+                return res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
+            }
         }else{
-            res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
+            return res.status(403).send({status:false,message:'token ไม่ถูกต้องตามรบบ '})
         }
         
-        
     }catch (err){
-        return res.status(500).send({error:err})
+        return res.status(500).send({error:err.message})
     }
+
 }
-const manager = async (req,res,next) =>{
+
+const partner = async(req, res, next)=>{
     try{
 
         let token = req.headers["token"]
-        const secretKey = "i#ngikanei;#aooldkhfa'"
         //เช็ค token
-        if(!token){
-            return res.status(403).send({status:false,message:'ไม่มี token'});
+        if(token == "" || token == null || token == undefined){
+            return res.status(403).send({status:false,message:'กรุณากรอก token'});
         }
-
-        // ทำการยืนยันสิทธิ์ token
-        const decoded =  jwt.verify(token,secretKey)
-        if(decoded.position ==="Manager Department"){
-            req.users = decoded.data
-            next();
+        const secretKey = "i#ngikanei;#aooldkhfa'"
+        //เช็ค if ว่า 6ตัวแรก มีคำว่า Bearer ไหม
+        if (token.startsWith("Bearer ")) {
+            token = token.replace(/^Bearer\s+/, "");
+            // ทำการยืนยันสิทธิ์ token
+            const decoded =  jwt.verify(token,secretKey)
+            if(decoded.row ==="partner"){
+                req.users = decoded.data
+                next();
+            }else{
+                return res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
+            }
         }else{
-            res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
+            return res.status(403).send({status:false,message:'token ไม่ถูกต้องตามรบบ '})
         }
         
-        
     }catch (err){
-        return res.status(500).send({error:err})
-    } 
+        return res.status(500).send({error:err.message})
+    }
+
 }
-const adminandmanager = async (req,res,next) =>{
+
+const adminandpartner = async(req, res, next)=>{
     try{
 
         let token = req.headers["token"]
-        const secretKey = "i#ngikanei;#aooldkhfa'"
         //เช็ค token
-        if(!token){
-            return res.status(403).send({status:false,message:'ไม่มี token'});
+        if(token == "" || token == null || token == undefined){
+            return res.status(403).send({status:false,message:'กรุณากรอก token'});
         }
-
-        // ทำการยืนยันสิทธิ์ token
-        const decoded =  jwt.verify(token,secretKey)
-        if(decoded.position ==="Manager Department" || decoded.position ==="admin"){
-            req.users = decoded.data
-            next();
+        const secretKey = "i#ngikanei;#aooldkhfa'"
+        //เช็ค if ว่า 6ตัวแรก มีคำว่า Bearer ไหม
+        if (token.startsWith("Bearer ")) {
+            token = token.replace(/^Bearer\s+/, "");
+            // ทำการยืนยันสิทธิ์ token
+            const decoded =  jwt.verify(token,secretKey)
+            if(decoded.row ==="admin" || decoded.row ==="partner"){
+                req.users = decoded.data
+                next();
+            }else{
+                return res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
+            }
         }else{
-            res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
+            return res.status(403).send({status:false,message:'token ไม่ถูกต้องตามรบบ '})
         }
         
-        
     }catch (err){
-        return res.status(500).send({error:err})
+        return res.status(500).send({error:err.message})
     }
+
+
 }
-
-//Report & Analysis
-const report = async (req,res,next) =>{
-    try{
-
-        let token = req.headers["token"]
-        const secretKey = "i#ngikanei;#aooldkhfa'"
-        //เช็ค token
-        if(!token){
-            return res.status(403).send({status:false,message:'ไม่มี token'});
-        }
-
-        // ทำการยืนยันสิทธิ์ token
-        const decoded =  jwt.verify(token,secretKey)
-        if(decoded.position ==="Report & Analysis" || decoded.position ==="Manager Department"){
-            req.users = decoded.data
-            next();
-        }
-        else{
-            res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
-        }
-
-    }catch (err){
-        return res.status(500).send({error:err})
-    }
-}
-
-// Account Department
-const account = async (req,res,next) =>{
-    try{
-
-        let token = req.headers["token"]
-        const secretKey = "i#ngikanei;#aooldkhfa'"
-        //เช็ค token
-        if(!token){
-            return res.status(403).send({status:false,message:'ไม่มี token'});
-        }
-         // ทำการยืนยันสิทธิ์ token
-         const decoded =  jwt.verify(token,secretKey)
-         if(decoded.position ==="Account Department" || decoded.position ==="Manager Department"){
-             req.users = decoded.data
-             next();
-         }else{
-             return res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
-         }
-         
-         
-     }catch (err){
-         return res.status(500).send({error:err})
-     }
- }
-
-//Logistic & Shipping Department
-const logistic = async (req,res,next) =>{
-    try{
-        let token = req.headers["token"]
-        const secretKey = "i#ngikanei;#aooldkhfa'"
-        //เช็ค token
-        if(!token){
-            return res.status(403).send({status:false,message:'ไม่มี token'});
-        }
-         // ทำการยืนยันสิทธิ์ token
-         const decoded =  jwt.verify(token,secretKey)
-         if(decoded.position ==="Logistic & Shipping Department" || decoded.position ==="Manager Department"){
-             req.users = decoded.data
-             next();
-         }else{
-            return  res.status(400).send({status:false,message:"คุณไม่มีสิทธิ่ในการใช้งาน"})
-         }
-    }catch (err){
-            return res.status(500).send({error:err})
-    }
-}
-          
 
 
 const all = async (req,res,next) => {
     try{
-
         let token = req.headers["token"]
-        const secretKey = "i#ngikanei;#aooldkhfa'"
         //เช็ค token
-        if(!token){
-            return res.status(403).send({status:false,message:'token หมดอายุ'});
+         if(token == "" || token == null || token == undefined){
+            return res.status(403).send({status:false,message:'กรุณากรอก token'});
         }
-        
-        // ทำการยืนยันสิทธิ์ token
-        const decoded =  jwt.verify(token,secretKey)
-        req.users = decoded.data
-        next()    
+        const secretKey = "i#ngikanei;#aooldkhfa'"
+        //เช็ค if ว่า 6ตัวแรก มีคำว่า Bearer ไหม
+        if (token.startsWith("Bearer ")) {
+            token = token.replace(/^Bearer\s+/, "");
+            // ทำการยืนยันสิทธิ์ token
+                const decoded =  jwt.verify(token,secretKey)
+                req.users = decoded.data
+                next()    
+        }else{
+            return res.status(403).send({status:false,message:'token ไม่ถูกต้องตามระบบ '})
+        }     
     }catch (err){
-        console.log(err)
-        return res.status(500).send({error:err})
+        return res.status(500).send({error:err.message})
     }
 }
 const authuser = {
-    adminandmanager,
-    verifyTokenadmin,
-    manager,
-    sales,
-    procurement,
-    account,
-    logistic,
-    report,
+    admin,
+    dealer,
+    adminanddealer,
+    partner,
+    adminandpartner,
     all
 };
 

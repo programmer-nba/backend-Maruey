@@ -8,6 +8,7 @@ const {
   deleteFile,
 } = require("../../functions/uploadfilecreate");
 
+
 const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
@@ -302,7 +303,7 @@ module.exports.status_promiss = async (req, res) => {
             partner_status_promiss: true,
             pdpa : true
         }
-        const edit = await partner.findByIdAndUpdate(req.params.id, data, { new: true })
+        const edit = await Partner.findByIdAndUpdate(req.params.id, data, { new: true })
         return res.status(200).send({ status: true, message: "ยอมรับเรียบร้อย", data: edit });
     } catch (error) {
         return res.status(500).send({ status: false, error: error.message });

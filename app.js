@@ -36,6 +36,15 @@ app.use(prefix+'/dealer',require('./routes/dealer/dealer'))
 // partner 
 app.use(prefix+'/partner',require('./routes/partner/partner'))
 
+//สินค้า
+app.use(prefix+'/product',require('./routes/product/product'))
+//หมวดหมู่สินค้า
+app.use(prefix+'/category',require('./routes/product/category'))
+//หมวดหมู่สินค้าย่อย
+app.use(prefix+'/type',require('./routes/product/type'))
+
+
+
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // หรือกำหนด origin ที่เฉพาะเจาะจง
@@ -45,3 +54,6 @@ app.use((req, res, next) => {
 
 const port = process.env.PORT || 5713;
 app.listen(port, console.log(`Listening on port ${port}`));
+
+
+

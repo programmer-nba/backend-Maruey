@@ -183,7 +183,7 @@ module.exports.delete = async (req, res) => {
     if (!admindata) {
       return res.status(200).send({ status: false, message: "ไม่มีข้อมูล admin" });
     }
-    const deleteadmin = await User.findByIdAndDelete(req.params.id);
+    const deleteadmin = await Admin.findByIdAndDelete(req.params.id);
     return res
       .status(200)
       .send({ status: true, message: "ลบข้อมูลสำเร็จ", data: deleteadmin });

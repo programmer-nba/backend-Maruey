@@ -54,6 +54,9 @@ module.exports.login = async (req, res) => {
                     telephone:dealer.telephone,
                     name : dealer.name,
                     row:"dealer",
+                    dealer_status:dealer.dealer_status,
+                    dealer_promiss:dealer.dealer_promiss,
+                    pdpa:dealer.pdpa
                 }
                 const secretKey = process.env.SECRET_KEY
                 const token = jwt.sign(payload,secretKey,{expiresIn:"10D"})

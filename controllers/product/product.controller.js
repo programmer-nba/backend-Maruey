@@ -32,7 +32,7 @@ module.exports.add = async (req, res) => {
                 product_type:req.body.product_type,
                 product_price:req.body.product_price,
                 product_store:req.body.product_store,
-                product_dealer_id:req.body.product_dealer_id,
+                product_dealer_id: (req.body.product_dealer_id == undefined || req.body.product_dealer_id == '') ? null : req.body.product_dealer_id,
                 product_detail:req.body.product_detail,
                 product_stock:req.body.product_stock,
                 product_status:false
@@ -101,7 +101,7 @@ module.exports.edit = async (req, res) => {
                 product_type:req.body.product_type,
                 product_price:req.body.product_price,
                 product_store:req.body.product_store,
-                product_dealer_id:req.body.product_dealer_id,
+                product_dealer_id: (req.body.product_dealer_id == undefined || req.body.product_dealer_id == '') ? null : req.body.product_dealer_id,
                 product_detail:req.body.product_detail,
                 product_stock:req.body.product_stock,
             },{new:true});

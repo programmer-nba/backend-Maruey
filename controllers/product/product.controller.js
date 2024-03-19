@@ -192,3 +192,17 @@ module.exports.addimgproduct = async (req, res) => {
     }
 
 };
+
+//ค้นหาตาม dealer ตาม id
+module.exports.getbydealer = async (req, res) => {
+    try{
+        const get = await Product.find({product_dealer_id:req.params.id}).populate('product_dealer_id').populate('product_category').populate('product_type');
+        if(get){
+            return res.status(200).json({message:"ดึงข้อมูลสินค้าสำเร็จ",data:get,status:true});
+        }else{
+            return res.status(400).json({message:"ดึงข้อมูลสินค้าไม่สำเร็จ",status:false});
+        }
+    }catch(error){
+        return res.status(500).json({message:error.message, status: false});
+    }
+}

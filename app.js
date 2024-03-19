@@ -43,6 +43,9 @@ app.use(prefix+'/category',require('./routes/product/category'))
 //หมวดหมู่สินค้าย่อย
 app.use(prefix+'/type',require('./routes/product/type'))
 
+//สัญญา dealer
+app.use(prefix+'/dealercontract',require('./routes/contract/dealercontract'))
+
 
 
 

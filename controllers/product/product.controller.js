@@ -79,6 +79,20 @@ module.exports.getbyid = async (req, res) => {
 }
 
 
+//ค้นหาสินค้าตามที่กรอกเข้ามา
+module.exports.search = async (req, res) => {
+    try{
+        const get = await Product.find({product_name:{$regex: req.params.name, $options: 'i'}}).populate('product_dealer_id').populate('product_category').populate('product_type');
+        if(get){
+            return res.status(200).json({message:"ค้นหาสินค้าสำเร็จ",data:get,status:true});
+        }else{
+            return res.status(400).json({message:"ค้นหาสินค้าไม่สำเร็จ",status:false});
+        }
+    }catch(error){
+        return res.status(500).json({message:error.message, status: false});
+    }
+}
+
 //แก้ไขข้อมูลสินค้า
 module.exports.edit = async (req, res) => {
     try{

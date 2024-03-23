@@ -248,7 +248,7 @@ module.exports.addimgbank = async (req, res) => {
 module.exports.addimgiden = async (req, res) => {
     try{
         let upload = multer({ storage: storage }).array("image", 20);
-    upload(req, res, async function (err) {
+        upload(req, res, async function (err) {
         const reqFiles = [];
         const result = [];
         if (err) {

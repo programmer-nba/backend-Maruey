@@ -46,6 +46,8 @@ app.use(prefix+'/type',require('./routes/product/type'))
 //สัญญา dealer
 app.use(prefix+'/dealercontract',require('./routes/contract/dealercontract'))
 
+//ข้อมูลลูกค้า
+app.use(prefix+'/customer',require('./routes/customer/customer'))
 
 
 

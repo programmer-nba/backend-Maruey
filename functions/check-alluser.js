@@ -1,7 +1,7 @@
 const {Admin} = require('../models/admin/admin.schema')
 const {Dealer} = require('../models/dealer/dealer.schema')
 const {Partner} = require('../models/partner/partner.schema')
-
+const {Customer} = require('../models/customer/customer.schema')
 //สร้าง function เช็คชื่อซ้ำ2 ตาราง
 
 async function CheckEmail(email){
@@ -10,7 +10,9 @@ async function CheckEmail(email){
     const checkDealer = await Dealer.findOne({email:email})
     if(checkDealer) return true
     const checkPartner = await Partner.findOne({email:email})
-    if(checkPartner) return true    
+    if(checkPartner) return true 
+    const checkCustomer = await Customer.findOne({email:email})
+    if(checkCustomer) return true
     return false
 }
 
@@ -21,6 +23,8 @@ async function CheckTelephone(telephone){
     if(checkDealer) return true
     const checkPartner = await Partner.findOne({telephone:telephone})
     if(checkPartner) return true    
+    const checkCustomer = await Customer.findOne({telephone:telephone})
+    if(checkCustomer) return true
     return false
 }
 

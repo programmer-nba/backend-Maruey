@@ -37,7 +37,7 @@ async function uploadFileCreate(req, res, {i, reqFiles}) {
     console.log(response.data.id);
     return response.data.id;
   } catch (error) {
-    res.status(500).send({message: "Internal Server Error"});
+    res.status(500).send({message: error.message});
   }
 }
 

@@ -82,11 +82,32 @@ module.exports.getbyid = async (req, res) => {
 //ค้นหาสินค้าตามที่กรอกเข้ามา
 module.exports.search = async (req, res) => {
     try{
-        const get = await Product.find({product_name:{$regex: req.params.name, $options: 'i'}}).populate('product_dealer_id').populate('product_category').populate('product_type');
+        //เวลาใส่ชื่อเต็มมันค้นหาไม่เจอ แก้ไง
+        const get = await Product.find({
+            $or: [
+                { product_name: { $regex: req.params.name, $options: 'i' } },
+                { product_name:  req.params.name }
+            ]
+        }).populate('product_dealer_id').populate('product_category').populate('product_type');
         if(get){
             return res.status(200).json({message:"ค้นหาสินค้าสำเร็จ",data:get,status:true});
         }else{
             return res.status(400).json({message:"ค้นหาสินค้าไม่สำเร็จ",status:false});
+        }
+    }catch(error){
+        return res.status(500).json({message:error.message, status: false});
+    }
+}
+
+
+//ดึงข้อมูลตามหมวดหมู่สินค้า
+module.exports.getbycategory = async (req, res) => {
+    try{
+        const get = await Product.find({product_category:req.params.id}).populate('product_dealer_id').populate('product_category').populate('product_type');
+        if(get){
+            return res.status(200).json({message:"ดึงข้อมูลสินค้าสำเร็จ",data:get,status:true});
+        }else{
+            return res.status(400).json({message:"ดึงข้อมูลสินค้าไม่สำเร็จ",status:false});
         }
     }catch(error){
         return res.status(500).json({message:error.message, status: false});

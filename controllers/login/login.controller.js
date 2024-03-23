@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const {Admin, validateadmin} = require("../../models/admin/admin.schema");
 const {Dealer, validateDealer} = require("../../models/dealer/dealer.schema");
 const {Partner, validatePartner} = require("../../models/partner/partner.schema");
-
+const {Customer, validateCustomer} = require("../../models/customer/customer.schema");
 ////ล็อค หลังบ้าน (admin,dealer,partner)
 module.exports.login = async (req, res) => {
     try {
@@ -22,6 +22,8 @@ module.exports.login = async (req, res) => {
         const admin = await Admin.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone }]})
         const dealer = await Dealer.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone }]})
         const partner = await Partner.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone }]})
+        const customer = await Customer.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone }]})
+
         let bcryptpassword
        
         if(admin)
@@ -75,6 +77,24 @@ module.exports.login = async (req, res) => {
                     telephone:partner.telephone,
                     name : partner.name,
                     row:"partner",
+                }
+                const secretKey = process.env.SECRET_KEY
+                const token = jwt.sign(payload,secretKey,{expiresIn:"10D"})
+                return res.status(200).send({ status: true, data: payload, token: token})
+            }else{
+                return res.status(200).send({ status: false, message: "คุณกรอกรหัสไม่ถูกต้อง" })
+            }
+        }else if(customer){
+            bcryptpassword = await bcrypt.compare(password,customer.password)
+            if(bcryptpassword)
+            {
+                const payload = {
+                    _id:customer._id,
+                    email:customer.email,
+                    telephone:customer.telephone,
+                    name : customer.name,
+                    row:"customer",
+                
                 }
                 const secretKey = process.env.SECRET_KEY
                 const token = jwt.sign(payload,secretKey,{expiresIn:"10D"})

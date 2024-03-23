@@ -16,6 +16,10 @@ router.get('/bydealer/:id',product.getbydealer);
 
 //ค้นหาสินค้าตามที่กรอกเข้ามา
 router.get('/search/:name',product.search);
+
+//ดึงข้อมูลสินค้าแนะนำ
+router.get('/recommend/:id',product.getbycategory);
+
 //แก้ไขข้อมูลสินค้า
 router.put('/:id',userAuth.adminanddealer,product.edit);
 //ลบข้อมูลสินค้า

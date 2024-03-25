@@ -49,6 +49,8 @@ app.use(prefix+'/dealercontract',require('./routes/contract/dealercontract'))
 //ข้อมูลลูกค้า
 app.use(prefix+'/customer',require('./routes/customer/customer'))
 
+//เปอร์เซ็นต์กำไร
+app.use(prefix+'/percentprofit',require('./routes/percentprofit/percentprofit'))
 
 
 app.use((req, res, next) => {

@@ -10,7 +10,7 @@ const ProductSchema = new mongoose.Schema(
     product_type:{type:[{type: mongoose.Schema.Types.ObjectId,ref:'type',default:null}],default:null},
     product_price:{type:Number,require:true}, //ราคาสินค้า
     product_store :{type:String,require:true}, //(ของตัวเอง,ของคู่ค้า)
-    product_dealer_id:{type: mongoose.Schema.Types.ObjectId,ref:'dealer',default:null}, //ไอดีคู่ค้า
+    product_partner_id:{type: mongoose.Schema.Types.ObjectId,ref:'partner',default:null}, //ไอดีคู่ค้า
     product_detail:{type:String,require:true}, //รายละเอียดสินค้า
     product_stock:{type:Number,require:true}, //จำนวนสินค้า
     product_image:{type:String,default:""}, //รูปภาพสินค้า

@@ -3,11 +3,11 @@ const router = express.Router();
 const Partner = require("../../controllers/partner/partner.controller")
 const userAuth = require('../../authentication/userAuth')
 
-//สร้างไอดี Partner
+//สร้างไอดี Partner (คู่ค้า)
 router.post('/',userAuth.adminandpartner,Partner.add);
 
 //ดึงข้อมูลทั้งหมด
-router.get('/',userAuth.admin,Partner.getall);
+router.get('/',userAuth.adminandpartner,Partner.getall);
 
 //ดึงข้อมูล by id
 router.get('/byid/:id',userAuth.adminandpartner,Partner.getbyid);
@@ -31,6 +31,6 @@ router.put('/addidcard/:id',userAuth.adminandpartner,Partner.addimgiden);
 router.put('/status/:id',userAuth.admin,Partner.status);
 
 // ยอมรับ สัญญา Partner ,pdpa
-router.put('/accept/:id',userAuth.partner,Partner.status_promiss);
+router.put('/accept/:id',userAuth.adminandpartner,Partner.status_promiss);
 
 module.exports = router;

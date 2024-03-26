@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
 
-const dealercontractschema = new mongoose.Schema(
+const partnercontractschema = new mongoose.Schema(
     {
         logo:{type:String,require:false,default:""}, // รูปlogo
         header:{type:String,require:true}, // หัวข้อสัญญา
@@ -11,5 +11,5 @@ const dealercontractschema = new mongoose.Schema(
 );
 
 
-const Dealercontract = mongoose.model("dealercontract", dealercontractschema);
-module.exports = {Dealercontract};
+const Partnercontract = mongoose.model("partnercontract", partnercontractschema);
+module.exports = {Partnercontract};

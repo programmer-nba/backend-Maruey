@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const {Dealercontract} = require("../../models/contract/dealercontract.schema");
+const {Partnercontract} = require("../../models/contract/partnercontract.schema");
 const Checkalluse = require("../../functions/check-alluser");
 
 const multer = require("multer");
@@ -17,14 +17,14 @@ const storage = multer.diskStorage({
 });
 
 //เพิ่มข้อมูลสัญญาdealer
-exports.addDealercontract = async (req, res) => {
+exports.addPartnercontract = async (req, res) => {
   try{
     const {head,detail} = req.body;
-    const dealercontract = new Dealercontract({
+    const partnercontract = new Partnercontract({
       header:head,
       detail:detail,
     });
-    const save = await dealercontract.save();
+    const save = await partnercontract.save();
     return res.status(200).send({message:"สร้างสัญญาสำเร็จ",data:save,status:true});
 
   }catch(err){
@@ -33,9 +33,9 @@ exports.addDealercontract = async (req, res) => {
 };
   
 //ดึงข้อมูลสัญญาdealer
-exports.getallDealercontract = async (req, res) => {
+exports.getallPartnercontract = async (req, res) => {
   try{
-    const get = await Dealercontract.find();
+    const get = await Partnercontract.find();
     return res.status(200).send({message:"ดึงข้อมูลสัญญาสำเร็จ",data:get,status:true});
   }catch(err){
     return res.status(500).send({message:err,status:false});
@@ -43,10 +43,10 @@ exports.getallDealercontract = async (req, res) => {
 };
 
 //แก้ไขข้อมูลสัญญาdealer
-exports.editDealercontract = async (req, res) => {
+exports.editPartnercontract = async (req, res) => {
   try{
     const {header,detail} = req.body;
-    const update = await Dealercontract.findByIdAndUpdate(req.params.id,{
+    const update = await Partnercontract.findByIdAndUpdate(req.params.id,{
       header:header,
       detail:detail,
     });
@@ -57,9 +57,9 @@ exports.editDealercontract = async (req, res) => {
 }
 
 //ลบข้อมูลสัญญาdealer
-exports.deleteDealercontract = async (req, res) => {
+exports.deletePartnercontract = async (req, res) => {
   try{
-    const del = await Dealercontract.findByIdAndDelete(req.params.id);
+    const del = await Partnercontract.findByIdAndDelete(req.params.id);
     return res.status(200).send({message:"ลบสัญญาสำเร็จ",data:del,status:true});
   }catch(err){
     return res.status(500).send({message:err,status:false});
@@ -76,11 +76,11 @@ exports.addimglogo = async (req, res) => {
         if (err) {
             return res.status(500).send(err);
         }
-        const dealercontract = await Dealercontract.findById(req.params.id);
-        if(!dealercontract){
+        const partnercontract = await Partnercontract.findById(req.params.id);
+        if(!partnercontract){
             return res.status(400).json({message:"ไม่พบข้อมูลสินค้า",status:false});
         }else{
-           dealercontract.logo != ''? deleteFile( dealercontract.logo) : null
+           partnercontract.logo != ''? deleteFile( partnercontract.logo) : null
         }
 
         let image = '' // ตั้งตัวแปรรูป
@@ -94,7 +94,7 @@ exports.addimglogo = async (req, res) => {
             }
             image = reqFiles[0]
         }
-        const update = await Dealercontract.findByIdAndUpdate(req.params.id,{logo:image},{new:true});
+        const update = await Partnercontract.findByIdAndUpdate(req.params.id,{logo:image},{new:true});
         return res.status(200).send({message:"เพิ่มรูปสำเร็จ",data:update,status:true});
     });
   }catch(err){

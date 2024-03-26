@@ -1,10 +1,9 @@
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken");
 const {Admin, validateadmin} = require("../../models/admin/admin.schema");
-const {Dealer, validateDealer} = require("../../models/dealer/dealer.schema");
 const {Partner, validatePartner} = require("../../models/partner/partner.schema");
 const {Customer, validateCustomer} = require("../../models/customer/customer.schema");
-////ล็อค หลังบ้าน (admin,dealer,partner)
+////ล็อค หลังบ้าน (admin,partner,partner)
 module.exports.login = async (req, res) => {
     try {
         if(req.body.emailandtelephone === undefined || req.body.emailandtelephone ==='')
@@ -20,7 +19,6 @@ module.exports.login = async (req, res) => {
         
         //เช็คว่า user นี้มีในระบบไหม
         const admin = await Admin.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone }]})
-        const dealer = await Dealer.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone }]})
         const partner = await Partner.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone }]})
         const customer = await Customer.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone }]})
 
@@ -45,28 +43,7 @@ module.exports.login = async (req, res) => {
             }else{
                 return res.status(200).send({ status: false, message: "คุณกรอกรหัสไม่ถูกต้อง" })
             }
-        }else if (dealer)
-        {
-            bcryptpassword = await bcrypt.compare(password,dealer.password)
-            if(bcryptpassword)
-            {
-                const payload = {
-                    _id:dealer._id,
-                    email:dealer.email,
-                    telephone:dealer.telephone,
-                    name : dealer.name,
-                    row:"dealer",
-                    dealer_status:dealer.dealer_status,
-                    dealer_promiss:dealer.dealer_promiss,
-                    pdpa:dealer.pdpa
-                }
-                const secretKey = process.env.SECRET_KEY
-                const token = jwt.sign(payload,secretKey,{expiresIn:"10D"})
-                return res.status(200).send({ status: true, data: payload, token: token})
-            }else{
-                return res.status(200).send({ status: false, message: "คุณกรอกรหัสไม่ถูกต้อง" })
-            }
-        }else if(partner)
+        }else if (partner)
         {
             bcryptpassword = await bcrypt.compare(password,partner.password)
             if(bcryptpassword)
@@ -77,6 +54,9 @@ module.exports.login = async (req, res) => {
                     telephone:partner.telephone,
                     name : partner.name,
                     row:"partner",
+                    partner_status:partner.partner_status,
+                    partner_promiss:partner.partner_status_promiss,
+                    pdpa:partner.pdpa
                 }
                 const secretKey = process.env.SECRET_KEY
                 const token = jwt.sign(payload,secretKey,{expiresIn:"10D"})

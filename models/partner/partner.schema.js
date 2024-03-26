@@ -15,6 +15,15 @@ const PartnerSchema = new mongoose.Schema(
         tambon: {type:String,default:""}, //(ตำบล)
         zipcode:{type:String,default:""}//(รหัสไปรษณีย์)	        
     },required:false,default:null},
+    company_name:{type:String,default:""}, //(ชื่อบริษัท)
+    company_taxid:{type:String,default:""}, //(เลขประจำตัวผู้เสียภาษี):
+    company_address:{type:{
+        address:{type:String,default:""}, //(ที่อยู่บริษัท)
+        province:{type:String,default:""}, //(จังหวัด)
+        amphure:{type:String,default:""}, //(อำเภอ)
+        tambon: {type:String,default:""}, //(ตำบล)
+        zipcode:{type:String,default:"" }
+    },default:null}, //(ที่อยู่บริษัท)
     partner_status:{type:Boolean,default:false},  //(true: อนุมัติ ,false: ไม่อนุมัติ)
     partner_status_promiss: {type:Boolean,default:false},  //( true:ยอมรับเงื่อนไข , false: ยังไม่ยอมรับเงื่อนไข)  // สัญญา partner
     pdpa : {type:Boolean,default:false}, //( true:ยอมรับเงื่อนไข , false: ยังไม่ยอมรับเงื่อนไข) 

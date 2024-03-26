@@ -32,7 +32,7 @@ module.exports.add = async (req, res) => {
                 product_type:req.body.product_type,
                 product_price:req.body.product_price,
                 product_store:req.body.product_store,
-                product_dealer_id: (req.body.product_dealer_id == undefined || req.body.product_dealer_id == '') ? null : req.body.product_dealer_id,
+                product_partner_id: (req.body.product_partner_id == undefined || req.body.product_partner_id == '') ? null : req.body.product_partner_id,
                 product_detail:req.body.product_detail,
                 product_stock:req.body.product_stock,
                 product_status:false
@@ -52,7 +52,7 @@ module.exports.add = async (req, res) => {
 //ดึงข้อมูลสินค้าทั้งหมด 
 module.exports.getall = async (req, res) => {
     try{
-        const get = await Product.find().populate('product_dealer_id').populate('product_category').populate('product_type');
+        const get = await Product.find().populate('product_partner_id').populate('product_category').populate('product_type');
         if(get){
             return res.status(200).json({message:"ดึงข้อมูลสินค้าสำเร็จ",data:get,status:true});
         }else{
@@ -67,7 +67,7 @@ module.exports.getall = async (req, res) => {
 //ดึงข้อมูลสินค้าตามไอดี
 module.exports.getbyid = async (req, res) => {
     try{
-        const get = await Product.findById(req.params.id).populate('product_dealer_id').populate('product_category').populate('product_type');
+        const get = await Product.findById(req.params.id).populate('product_partner_id').populate('product_category').populate('product_type');
         if(get){
             return res.status(200).json({message:"ดึงข้อมูลสินค้าสำเร็จ",data:get,status:true});
         }else{
@@ -88,7 +88,7 @@ module.exports.search = async (req, res) => {
                 { product_name: { $regex: req.params.name, $options: 'i' } },
                 { product_name:  req.params.name }
             ]
-        }).populate('product_dealer_id').populate('product_category').populate('product_type');
+        }).populate('product_partner_id').populate('product_category').populate('product_type');
         if(get){
             return res.status(200).json({message:"ค้นหาสินค้าสำเร็จ",data:get,status:true});
         }else{
@@ -103,7 +103,7 @@ module.exports.search = async (req, res) => {
 //ดึงข้อมูลตามหมวดหมู่สินค้า
 module.exports.getbycategory = async (req, res) => {
     try{
-        const get = await Product.find({product_category:req.params.id}).populate('product_dealer_id').populate('product_category').populate('product_type');
+        const get = await Product.find({product_category:req.params.id}).populate('product_partner_id').populate('product_category').populate('product_type');
         if(get){
             return res.status(200).json({message:"ดึงข้อมูลสินค้าสำเร็จ",data:get,status:true});
         }else{
@@ -136,7 +136,7 @@ module.exports.edit = async (req, res) => {
                 product_type:req.body.product_type,
                 product_price:req.body.product_price,
                 product_store:req.body.product_store,
-                product_dealer_id: (req.body.product_dealer_id == undefined || req.body.product_dealer_id == '') ? null : req.body.product_dealer_id,
+                product_partner_id: (req.body.product_partner_id == undefined || req.body.product_partner_id == '') ? null : req.body.product_partner_id,
                 product_detail:req.body.product_detail,
                 product_stock:req.body.product_stock,
             },{new:true});
@@ -228,10 +228,10 @@ module.exports.addimgproduct = async (req, res) => {
 
 };
 
-//ค้นหาตาม dealer ตาม id
-module.exports.getbydealer = async (req, res) => {
+//ค้นหาตาม partner ตาม id
+module.exports.getbypartner = async (req, res) => {
     try{
-        const get = await Product.find({product_dealer_id:req.params.id}).populate('product_dealer_id').populate('product_category').populate('product_type');
+        const get = await Product.find({product_partner_id:req.params.id}).populate('product_partner_id').populate('product_category').populate('product_type');
         if(get){
             return res.status(200).json({message:"ดึงข้อมูลสินค้าสำเร็จ",data:get,status:true});
         }else{

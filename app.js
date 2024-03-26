@@ -29,11 +29,9 @@ const prefix = '/v1/Backend-Maruey'
 app.use(prefix+'/', require('./routes/index'));
 //ผู้ใช้งาน
 app.use(prefix+'/admin',require('./routes/admin/admin'))
-//ล็อคอิน(admin,dealer,partner)
+//ล็อคอิน
 app.use(prefix+'/login',require('./routes/login/login'))
-//dealer คู่ค้า
-app.use(prefix+'/dealer',require('./routes/dealer/dealer'))
-// partner 
+//partner คู่ค้า
 app.use(prefix+'/partner',require('./routes/partner/partner'))
 
 //สินค้า
@@ -43,8 +41,8 @@ app.use(prefix+'/category',require('./routes/product/category'))
 //หมวดหมู่สินค้าย่อย
 app.use(prefix+'/type',require('./routes/product/type'))
 
-//สัญญา dealer
-app.use(prefix+'/dealercontract',require('./routes/contract/dealercontract'))
+//สัญญา partner
+app.use(prefix+'/partnercontract',require('./routes/contract/partnercontract'))
 
 //ข้อมูลลูกค้า
 app.use(prefix+'/customer',require('./routes/customer/customer'))

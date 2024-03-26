@@ -1,13 +1,12 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const {Partner,validatepartner} = require("../../models/partner/partner.schema");
+const { Partner ,validatepartner }= require("../../models/partner/partner.schema");
 const Checkalluse = require("../../functions/check-alluser");
 const multer = require("multer");
 const {
   uploadFileCreate,
   deleteFile,
 } = require("../../functions/uploadfilecreate");
-
 
 const storage = multer.diskStorage({
   filename: function (req, file, cb) {
@@ -16,7 +15,7 @@ const storage = multer.diskStorage({
   },
 });
 
-//สร้างไอดี partner (คู่ค้า)
+//สร้างไอดี Partner (คู่ค้า)
 module.exports.add = async (req, res) => {
   try {
     
@@ -38,6 +37,14 @@ module.exports.add = async (req, res) => {
         return res.status(409).send({ status: false, message: "เบอร์โทรศัพท์ นี้มีคนใช้แล้ว" });
       }
 
+      //เช็คว่าเลขบัตรประจำตัวผู้เสียภาษีซ้ำไหม
+      const checkcompany_taxid = await Partner.find({ company_taxid: req.body.company_taxid });
+      if (checkcompany_taxid.length !== 0) {
+        return res.status(409).send({ status: false, message: "เลขประจำตัวผู้เสียภาษี นี้มีคนใช้แล้ว" });
+      }
+
+
+
       const data = new Partner({
         email: req.body.email,
         telephone: req.body.telephone,
@@ -45,8 +52,11 @@ module.exports.add = async (req, res) => {
         name: req.body.name,
         referralcode: await runreferralcode(),//(รหัสผู้แนะนำ)
         address: req.body.address,
+        company_name: req.body.company_name, //(ชื่อบริษัท)
+        company_taxid: req.body.company_taxid, //(เลขประจำตัวผู้เสียภาษี)
+        company_address: req.body.company_address, //(ที่อยู่บริษัท)
         partner_status:false,  //(true: อนุมัติ ,false: ไม่อนุมัติ)
-        partner_status_promiss: false, //( true:ยอมรับเงื่อนไข , false: ยังไม่ยอมรับเงื่อนไข)  // สัญญา partner
+        partner_status_promiss: false, //( true:ยอมรับเงื่อนไข , false: ยังไม่ยอมรับเงื่อนไข)  // สัญญา Partner
         pdpa :false, //( true:ยอมรับเงื่อนไข , false: ยังไม่ยอมรับเงื่อนไข) 
         bank:{
             accountname:req.body.bank.accountname,  //(ชื่อบัญชี)
@@ -67,7 +77,7 @@ module.exports.add = async (req, res) => {
         .status(200)
         .send({
           status: true,
-          message: "คุณได้สร้างไอดี partner เรียบร้อย",
+          message: "คุณได้สร้างไอดี Partner เรียบร้อย",
           data: add,
         });
 
@@ -82,7 +92,7 @@ module.exports.getall = async (req, res) => {
   try {
     const partnerdata = await Partner.find();
     if (!partnerdata) {
-      return res.status(404).send({ status: false, message: "ไม่มีข้อมูลpartner" });
+      return res.status(404).send({ status: false, message: "ไม่มีข้อมูลคู่ค้า" });
     }
     return res.status(200).send({ status: true, data: partnerdata });
   } catch (error) {
@@ -97,7 +107,7 @@ module.exports.getbyid = async (req, res) => {
   try {
     const partnerdata = await Partner.findOne({ _id: req.params.id });
     if (!partnerdata) {
-      return res.status(404).send({ status: false, message: "ไม่มีข้อมูล partner" });
+      return res.status(404).send({ status: false, message: "ไม่มีข้อมูลคู่ค้า" });
     }
     return res.status(200).send({ status: true, data: partnerdata });
   } catch (error) {
@@ -107,12 +117,12 @@ module.exports.getbyid = async (req, res) => {
 
 
 
-//แก้ไขข้อมูล partner
+//แก้ไขข้อมูล Partner
 module.exports.edit = async (req, res) => {
   try {
     const partner = await Partner.findOne({ _id: req.params.id });
     if (!partner) {
-      return res.status(404).send({ status: false, message: "ไม่มีข้อมูล partner" });
+      return res.status(404).send({ status: false, message: "ไม่มีข้อมูลคู่ค้า" });
     }
     
     //เช็คว่ากรอกข้อมูลครบที่จำเป็นไหม
@@ -141,7 +151,7 @@ module.exports.edit = async (req, res) => {
       if(partner.company_taxid != req.body.company_taxid)
       {
         //เช็คว่าเลขบัตรประจำตัวผู้เสียภาษีซ้ำไหม
-        const checkcompany_taxid = await partner.find({ company_taxid: req.body.company_taxid });
+        const checkcompany_taxid = await Partner.find({ company_taxid: req.body.company_taxid });
         if (checkcompany_taxid.length !== 0) {
           return res.status(409).send({ status: false, message: "เลขประจำตัวผู้เสียภาษี นี้มีคนใช้แล้ว" });
         }
@@ -150,9 +160,12 @@ module.exports.edit = async (req, res) => {
       const data = {
         email: req.body.email,
         telephone: req.body.telephone,
-        password:  (req.body.password !=undefined && req.body.password!=''? bcrypt.hashSync(req.body.password, 10):partner.password), // ถ้าไม่ได้มีการส่ง password มาให้ทำการ ใช้ password เดิม
+        password:  (req.body.password !=undefined && req.body.password!=''? bcrypt.hashSync(req.body.password, 10):Partner.password), // ถ้าไม่ได้มีการส่ง password มาให้ทำการ ใช้ password เดิม
         name: req.body.name,
         address: req.body.address,
+        company_name: req.body.company_name, //(ชื่อบริษัท)
+        company_taxid: req.body.company_taxid, //(เลขประจำตัวผู้เสียภาษี)
+        company_address: req.body.company_address, //(ที่อยู่บริษัท)
         bank:{
             accountname:req.body.bank.accountname,  //(ชื่อบัญชี)
             accountnumber: req.body.bank.accountnumber, //(เลขบัญชี) 
@@ -167,24 +180,24 @@ module.exports.edit = async (req, res) => {
       }
 
       const edit = await Partner.findByIdAndUpdate(req.params.id,data,{new:true})
-      return res.status(200).send({status: true,message: "คุณได้แก้ไขข้อมูล partner เรียบร้อย",data: edit});
+      return res.status(200).send({status: true,message: "คุณได้แก้ไขข้อมูลคู่ค้าเรียบร้อย",data: edit});
 
   } catch (error) {
     return res.status(500).send({ status: false, error: error.message });
   }
 };
 
-//ลบข้อมูล partner
+//ลบข้อมูล Partner
 module.exports.delete = async (req, res) => {
   try {
     const partnerdata = await Partner.findOne({ _id: req.params.id });
     if (!partnerdata) {
-      return res.status(200).send({ status: false, message: "ไม่มีข้อมูล partner" });
+      return res.status(200).send({ status: false, message: "ไม่มีข้อมูล admin" });
     }
-    const deleteadmin = await Partner.findByIdAndDelete(req.params.id);
+    const deletepartner = await Partner.findByIdAndDelete(req.params.id);
     return res
       .status(200)
-      .send({ status: true, message: "ลบข้อมูลสำเร็จ", data: deleteadmin });
+      .send({ status: true, message: "ลบข้อมูลสำเร็จ", data: deletepartner });
   } catch (error) {
     return res.status(500).send({ status: false, error: error.message });
   }
@@ -202,7 +215,7 @@ module.exports.addimgbank = async (req, res) => {
             }
             const partner = await Partner.findOne({ _id: req.params.id });
             if (!partner) {
-                return res.status(404).send({ status: false, message: "ไม่มีข้อมูล partner" });
+                return res.status(404).send({ status: false, message: "ไม่มีข้อมูลคู่ค้า" });
             }else{
                 if(partner.bank.imgbank != '')
                 {
@@ -231,12 +244,11 @@ module.exports.addimgbank = async (req, res) => {
     
     }
 };
-
 //เพิ่มบัตรประชาชน
 module.exports.addimgiden = async (req, res) => {
     try{
         let upload = multer({ storage: storage }).array("image", 20);
-    upload(req, res, async function (err) {
+        upload(req, res, async function (err) {
         const reqFiles = [];
         const result = [];
         if (err) {
@@ -244,7 +256,7 @@ module.exports.addimgiden = async (req, res) => {
         }
         const partner = await Partner.findOne({ _id: req.params.id });
         if (!partner) {
-            return res.status(404).send({ status: false, message: "ไม่มีข้อมูล partner" });
+            return res.status(404).send({ status: false, message: "ไม่มีข้อมูลคู่ค้า" });
         }else{
             if(partner.iden.iden_image != '')
             {
@@ -275,12 +287,12 @@ module.exports.addimgiden = async (req, res) => {
 };
 
 
-//เปิด -ปิด สถานะ partner
+//เปิด -ปิด สถานะ Partner
 module.exports.status = async (req, res) => {
   try {
     const partner = await Partner.findOne({ _id: req.params.id });
     if (!partner) {
-      return res.status(404).send({ status: false, message: "ไม่มีข้อมูล partner" });
+      return res.status(404).send({ status: false, message: "ไม่มีข้อมูลคู่ค้า" });
     }
     const data = {
       partner_status: req.body.partner_status
@@ -292,16 +304,16 @@ module.exports.status = async (req, res) => {
   }
 };
 
-// ยอมรับ สัญญา partner ,pdpa
+// ยอมรับ สัญญา Partner ,pdpa
 module.exports.status_promiss = async (req, res) => {
     try {
         const partner = await Partner.findOne({ _id: req.params.id });
         if (!partner) {
-        return res.status(404).send({ status: false, message: "ไม่มีข้อมูล partner" });
+        return res.status(404).send({ status: false, message: "ไม่มีข้อมูลคู่ค้า" });
         }
         const data = {
-            partner_status_promiss: true,
-            pdpa : true
+          partner_status_promiss: true,
+          pdpa : true
         }
         const edit = await Partner.findByIdAndUpdate(req.params.id, data, { new: true })
         return res.status(200).send({ status: true, message: "ยอมรับเรียบร้อย", data: edit });
@@ -319,7 +331,7 @@ async function runreferralcode() {
       const number = await Partner.find({ createdAt: { $gte: startDate, $lte: endDate } }).countDocuments()
       const currentDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
       let referenceNumber = String(number).padStart(5, '0');
-      let ref = `partner${currentDate}${referenceNumber}`;
+      let ref = `Partner${currentDate}${referenceNumber}`;
       let loopnum  = 0
       let check = await Partner.find({ referralcode: ref }).countDocuments();
       if (check!== 0) {
@@ -330,7 +342,7 @@ async function runreferralcode() {
           {
             loopnum++;
             referenceNumber = String(number+loopnum).padStart(5, '0');
-            ref = `partner${currentDate}${referenceNumber}`;
+            ref = `Partner${currentDate}${referenceNumber}`;
           }
 
         }while(check !== 0)

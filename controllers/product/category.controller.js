@@ -5,6 +5,8 @@ const {Category} = require("../../models/product/category.schema");
 //เพิ่มหมวดหมู่สินค้า
 module.exports.add = async (req, res) => {
     try{
+        const category = await Category.findOne({ category_name: req.body.category_name });
+        if(category) return res.status(409).send({ message: "มีหมวดหมู่สินค้านี้อยู่แล้ว", status: false });
         const add = new Category({ category_name:req.body.category_name});
         const save = await add.save();
         return res.status(200).send({ message: "เพิ่มหมวดหมู่สินค้าสำเร็จ",data:save , status: true });
@@ -35,6 +37,21 @@ module.exports.getbyid = async (req, res) => {
 //แก้ไขข้อมูลหมวดหมู่สินค้า
 module.exports.edit = async (req, res) => {
     try{
+        const category = await Category.findById(req.params.id);
+        if(!category) 
+        {
+            return res.status(409).send({ message: "ไม่พบข้อมูลหมวดหมู่สินค้า", status: false });
+        }
+       
+        if(category.category_name != req.body.category_name) 
+        {
+            const check = await Category.findOne({ category_name: req.body.category_name });
+            if(check)
+            {
+                return res.status(400).send({ message: "มีหมวดหมู่สินค้านี้อยู่แล้ว", status: false });
+            }
+           
+        }
         const edit = await Category.findByIdAndUpdate(req.params.id, { category_name:req.body.category_name },{ new: true });
         return res.status(200).send({ message: "แก้ไขข้อมูลหมวดหมู่สินค้าสำเร็จ",data:edit , status: true });
     }catch(err){

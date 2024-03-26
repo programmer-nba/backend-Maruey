@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Customer, validatecustomer } = require("../../models/customer/customer.schema");
+const {Partner} = require("../../models/partner/partner.schema");
 const Checkalluse = require("../../functions/check-alluser");
 
 const multer = require("multer");
@@ -19,6 +20,7 @@ const storage = multer.diskStorage({
 //สมัครลูกค้า
 module.exports.register = async (req, res) => {
   try{
+   
     const { error } = validatecustomer(req.body);
     if (error) return res.status(400).json({ status:false,message: error.details[0].message });
 
@@ -33,6 +35,60 @@ module.exports.register = async (req, res) => {
      if (checktelephone == true) {
        return res.status(409).send({ status: false, message: "เบอร์โทรศัพท์ นี้มีคนใช้แล้ว" });
      }
+     let upline = {
+      recommendedcode:"",
+      level_one: null,
+      level_two: null,
+      level_three: null,
+      level_four: null,
+      level_five: null,
+      level_six: null,
+      level_seven: null,
+      level_eight: null,
+      level_nine: null,
+      level_ten: null,
+     }
+     if(req.body.recommendedcode != '' && req.body.recommendedcode != undefined)
+     {
+        //เช็ครหัสผู้แนะนำ
+        const checkrecommendedcode = await Customer.findOne({referralcode:req.body.recommendedcode})
+        const checkrecommendedcodepartner = await Partner.findOne({referralcode:req.body.recommendedcode})
+        if (!checkrecommendedcode && !checkrecommendedcodepartner) {
+          return res.status(409).send({ status: false, message: "รหัสผู้แนะนำไม่ถูกต้อง" });
+        }else{
+          if(checkrecommendedcode)
+          {
+            upline = {
+              recommendedcode:req.body.recommendedcode,
+              level_one: checkrecommendedcode._id,
+              level_two: checkrecommendedcode.upline.level_one,
+              level_three: checkrecommendedcode.upline.level_two,
+              level_four: checkrecommendedcode.upline.level_three,
+              level_five: checkrecommendedcode.upline.level_four,
+              level_six: checkrecommendedcode.upline.level_five,
+              level_seven: checkrecommendedcode.upline.level_six,
+              level_eight: checkrecommendedcode.upline.level_seven,
+              level_nine: checkrecommendedcode.upline.level_eight,
+              level_ten: checkrecommendedcode.upline.level_nine,
+            }
+          }else if(checkrecommendedcodepartner){
+            upline = {
+              recommendedcode:req.body.recommendedcode,
+              level_one: checkrecommendedcodepartner._id,
+              level_two: null,
+              level_three: null,
+              level_four: null,
+              level_five: null,
+              level_six: null,
+              level_seven: null,
+              level_eight: null,
+              level_nine: null,
+              level_ten: null,
+            }
+          }
+          
+        }
+     }
 
      const data = new Customer({
       email: req.body.email,
@@ -42,6 +98,7 @@ module.exports.register = async (req, res) => {
       prefix:req.body.prefix, //(คำนำหน้า)
       name :req.body.name, //(ชื่อ-สกุล)
       sex:req.body.sex, //(เพศ)
+      upline:upline,
      });
 
     const add = await data.save();
@@ -173,6 +230,22 @@ module.exports.pdpa = async (req, res) => {
     return res.status(500).json({ status:false,message: err.message });
   }
 }
+
+  //เช็คเลขแนะนำ referralcode ว่ามีอยู่ไหม ถ้ามี returm ไปว่ามี ถ้าไม่มี return ไปว่าไม่มี
+  module.exports.CheckRecommendedcode = async (req, res) => {
+    try{
+      const checkrecommendedcode = await Customer.findOne({referralcode:req.params.id})
+      const checkrecommendedcodepartner = await Partner.findOne({referralcode:req.params.id})
+      if (!checkrecommendedcode && !checkrecommendedcodepartner) {
+        return res.status(200).json({ status:false,message: "ไม่พบข้อมูล"});
+      }
+      return res.status(200).json({ status:true,message: "พบข้อมูล"});
+    }
+    catch(err){
+      return res.status(500).json({ status:false,message: err.message });
+    }
+  }
+
 
 
 //รันเลขผู้แนะนำ

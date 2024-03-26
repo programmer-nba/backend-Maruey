@@ -25,6 +25,15 @@ async function CheckTelephone(telephone){
     return false
 }
 
+//เข็ครหัสผู้แนะนำ ถ้าเจอให้ return true ถ้าไม่เจอ return false
+async function CheckRecommendedcode(recommendedcode){
+    const checkCustomer = await Customer.findOne({referralcode:recommendedcode})
+    if(checkCustomer) return true
+    const checkPartner = await Partner.findOne({referralcode:recommendedcode})
+    if(checkPartner) return true
+    return false
+}
+
 
 const Checkalluse = {
     CheckEmail, CheckTelephone

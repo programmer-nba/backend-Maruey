@@ -3,7 +3,7 @@ const Joi = require("joi");
 
 const categoryschema = new mongoose.Schema(
     {
-        category_name:{type:String,require:true}, // ชื่อหมวดหมู่สินค้า
+        category_name:{type:String,require:true,unique:true}, // ชื่อหมวดหมู่สินค้า
     },
     {timestamps: true}
 );

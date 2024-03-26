@@ -21,4 +21,7 @@ router.put('/bank/:id',userAuth.all,Customer.addimgbank);
 //ยอมรับ pdpa
 router.put('/pdpa/:id',userAuth.all,Customer.pdpa);
 
+//เช็คเลขแนะนำ referralcode ว่ามีอยู่ไหม ถ้ามี returm ไปว่ามี ถ้าไม่มี return ไปว่าไม่มี
+router.get('/checkreferralcode/:id',Customer.CheckRecommendedcode);
+
 module.exports = router;

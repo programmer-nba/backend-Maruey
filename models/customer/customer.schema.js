@@ -41,6 +41,19 @@ const customerschema = new mongoose.Schema(
             zipcode:{type:String,default:""}//(รหัสไปรษณีย์)
         }],default:[]}, //ที่อยู่จัดส่ง
         pdpa : {type:Boolean,default:false}, //( true:ยอมรับเงื่อนไข , false: ยังไม่ยอมรับเงื่อนไข)
+        upline:{
+            recommendedcode:{type:String,default:""}, //(รหัสแนะนำ)
+            level_one:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ1)
+            level_two:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ2)
+            level_three:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ3)
+            level_four:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ4)
+            level_five:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ5)
+            level_six:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ6)
+            level_seven:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ7)
+            level_eight:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ8)
+            level_nine:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ9)
+            level_ten:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ10)
+        }
 
 
 },{timestamps: true});
@@ -56,6 +69,7 @@ const validatecustomer = (data) => {
       prefix:Joi.string().required().label("กรุณากรอกคำนำหน้า"),
       name:Joi.string().required().label("กรุณากรอกชื่อ-นามสกุล"),
       sex:Joi.string().required().label("กรุณากรอกเพศ"),
+      recommendedcode: Joi.string().label("Recommended Code")
     });
     return schema.validate(data);
   };

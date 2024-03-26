@@ -5,6 +5,10 @@ const {Type} = require("../../models/product/type.schema");
 //เพิ่มหมวดหมู่สินค้าย่อย
 module.exports.add = async (req, res) => {
     try{
+        const type = await Type.findOne({ type_name: req.body.type_name });
+        if(type){
+            return res.status(409).send({ message: "มีหมวดหมู่สินค้าย่อยนี้อยู่แล้ว", status: false });
+        } 
         const add = new Type({ type_name:req.body.type_name});
         const save = await add.save();
         return res.status(200).send({ message: "เพิ่มหมวดหมู่สินค้าย่อยสำเร็จ",data:save , status: true });
@@ -37,6 +41,16 @@ module.exports.getbyid = async (req, res) => {
 //แก้ไขข้อมูลหมวดหมู่สินค้าย่อย
 module.exports.edit = async (req, res) => {
     try{
+        const type = await Type.findById(req.params.id);
+        if(!type){
+            return res.status(400).send({ message: "ไม่พบข้อมูลหมวดหมู่สินค้าย่อย", status: false });
+        }
+        if(type.type_name != req.body.type_name){
+            const check = await Type.findOne({ type_name: req.body.type_name });
+            if(check){
+                return res.status(409).send({ message: "มีหมวดหมู่สินค้าย่อยนี้อยู่แล้ว", status: false });
+            }
+        }
         const edit = await Type.findByIdAndUpdate(req.params.id, { type_name:req.body.type_name }, { new: true });
         return res.status(200).send({ message: "แก้ไขข้อมูลหมวดหมู่สินค้าย่อยสำเร็จ",data:edit , status: true });
     }catch(err){

@@ -50,6 +50,10 @@ app.use(prefix+'/customer',require('./routes/customer/customer'))
 //เปอร์เซ็นต์กำไร
 app.use(prefix+'/percentprofit',require('./routes/percentprofit/percentprofit'))
 
+//คำร้องขอฝากขายสินค้า
+app.use(prefix+'/requestproduct',require('./routes/product/requestproduct'))
+
+
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // หรือกำหนด origin ที่เฉพาะเจาะจง

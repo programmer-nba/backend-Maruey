@@ -15,6 +15,10 @@ const PercentprofitSchema = new mongoose.Schema(
         owner: {type: Number,required: true},
         sharelink: {type: Number,required: true}
     },
+    percentcustomer:{
+      shareproduct:{type:Number,required:true}, //(ให้คนที่แชร์ลิงค์สินค้า)
+      sharelink:{type:Number,required:true} //(ให้คนที่แนะนำเพื่อน)
+    },
     sharelink: {
         level_one: {type: Number,required: true},
         level_two: {type: Number,required: true},

@@ -8,7 +8,13 @@ const RequestProductSchema = new mongoose.Schema(
     product_category:{type: mongoose.Schema.Types.ObjectId,ref:'category',default:null}, //หมวดหมู่สินค้า
     //ดึงข้อมูลมาจาก type แต่จะ ref เป็น array มายังไง
     product_type:{type:[{type: mongoose.Schema.Types.ObjectId,ref:'type',default:null}],default:null},
+    product_costprice:{type:Number,require:true},//ราคาต้นทุน
     product_price:{type:Number,require:true}, //ราคาสินค้า
+    product_weight:{type:Number,require:true},//น้ำหนัก
+    product_width:{type:Number,require:true},//กว้าง
+    product_long:{type:Number,require:true},//ยาว
+    product_height:{type:Number,require:true},//สูง
+
     product_store :{type:String,require:true}, //(ของตัวเอง,ของคู่ค้า)
     product_partner_id:{type: mongoose.Schema.Types.ObjectId,ref:'partner',default:null}, //ไอดีคู่ค้า
     product_detail:{type:String,require:true}, //รายละเอียดสินค้า

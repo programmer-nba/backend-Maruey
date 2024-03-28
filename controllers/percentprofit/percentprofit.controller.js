@@ -6,6 +6,7 @@ module.exports.add = async (req, res) => {
         const add = new Percentprofit({ 
             percentpartner: req.body.percentpartner,
             percentmaruey: req.body.percentmaruey,
+            percentcustomer: req.body.percentcustomer,
             sharelink: req.body.sharelink
         });
         const save = await add.save();
@@ -53,6 +54,21 @@ module.exports.editpercentmaruey = async (req, res) => {
         if(!percentprofit) return res.status(400).send({ message: "ไม่พบข้อมูล", status: false });
         const edit = await Percentprofit.findByIdAndUpdate(req.params.id, {
             percentmaruey: req.body.percentmaruey
+        });
+        return res.status(200).send({ message: "แก้ไขข้อมูลสำเร็จ",data:edit , status: true });
+    }catch(err){
+        return res.status(500).send({ message: err.message, status: false });
+    }
+
+}
+
+//แก้ไขข้อมูลเปอร์เซ้นต์กำไร ของ ส่วนแบ่งรายได้คืนให้ลูกค้า
+module.exports.editpercentcustomer = async (req, res) => {
+    try{
+        const percentprofit = await Percentprofit.findById(req.params.id);
+        if(!percentprofit) return res.status(400).send({ message: "ไม่พบข้อมูล", status: false });
+        const edit = await Percentprofit.findByIdAndUpdate(req.params.id, {
+            percentcustomer: req.body.percentcustomer
         });
         return res.status(200).send({ message: "แก้ไขข้อมูลสำเร็จ",data:edit , status: true });
     }catch(err){

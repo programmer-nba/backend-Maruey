@@ -246,6 +246,45 @@ module.exports.pdpa = async (req, res) => {
     }
   }
 
+   //เพิ่มที่อยู่จัดส่ง
+  module.exports.addnewaddressdelivery = async (req, res) => {
+    try{
+      const customer = await Customer.findById(req.params.id)
+      if (!customer) return res.status(404).json({ status:false,message: "ไม่พบข้อมูล"});
+      
+      
+      customer.addressdelivery.push(req.body.addressdelivery) 
+      
+      const edit = await Customer.findByIdAndUpdate(req.params.id,{"addressdelivery":customer.addressdelivery},{new:true})
+      return res.status(200).json({ status:true,message: "เพิ่มที่อยู่จัดส่งสำเร็จ",data:edit});
+    }catch(err){
+      return res.status(500).json({ status:false,message: err.message });
+    }
+  }
+
+  //แก้ไขที่อยู่จัดส่ง
+  module.exports.editaddressdelivery = async (req, res) => {
+    try{
+      const customer = await Customer.findById(req.params.id)
+      if (!customer) return res.status(404).json({ status:false,message: "ไม่พบข้อมูล"});
+      const findindex =  customer.addressdelivery.findIndex(x=>x._id == req.body.addressdelivery._id)
+      if(findindex == -1)
+      {
+        return res.status(404).json({ status:false,message: "ไม่พบข้อมูล"});
+      }else{
+        customer.addressdelivery[findindex] = req.body.addressdelivery
+        const edit = await Customer.findByIdAndUpdate(req.params.id,{"addressdelivery":customer.addressdelivery},{new:true})
+        return res.status(200).json({ status:true,message: "แก้ไขที่อยู่จัดส่งสำเร็จ",data:edit});         
+      }
+
+    }catch(err){
+      return res.status(500).json({ status:false,message: err.message });
+    }
+  
+}
+
+
+
 
 
 //รันเลขผู้แนะนำ

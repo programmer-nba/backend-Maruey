@@ -34,6 +34,8 @@ const customerschema = new mongoose.Schema(
         },default:null}, //(ที่อยู่ตามบัตรประชาชน)
         addressdelivery:{type:[{
             name:{type:String,default:""}, //(ชื่อเรียก)
+            namedelivery:{type:String ,default:""} ,//(ชื่อคนรับสินค้า)
+	        telephone:{type:String,default:""},  //(เบอร์ที่เอาไว้ติดต่อ)
             address:{type:String,default:""}, //(ที่อยู่)
             province:{type:String,default:""}, //(จังหวัด)
             amphure:{type:String,default:""}, //(อำเภอ)

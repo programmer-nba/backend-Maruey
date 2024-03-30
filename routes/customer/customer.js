@@ -24,4 +24,9 @@ router.put('/pdpa/:id',userAuth.all,Customer.pdpa);
 //เช็คเลขแนะนำ referralcode ว่ามีอยู่ไหม ถ้ามี returm ไปว่ามี ถ้าไม่มี return ไปว่าไม่มี
 router.get('/checkreferralcode/:id',Customer.CheckRecommendedcode);
 
+ //เพิ่มที่อยู่จัดส่ง
+router.put('/addressdelivery/:id',userAuth.customer,Customer.addnewaddressdelivery);
+ //แก้ไขที่อยู่จัดส่ง
+router.put('/addressdelivery/edit/:id',userAuth.customer,Customer.editaddressdelivery);
+
 module.exports = router;

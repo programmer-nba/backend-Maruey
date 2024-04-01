@@ -53,6 +53,11 @@ app.use(prefix+'/percentprofit',require('./routes/percentprofit/percentprofit'))
 //คำร้องขอฝากขายสินค้า
 app.use(prefix+'/requestproduct',require('./routes/product/requestproduct'))
 
+//ออเดอร์
+app.use(prefix+'/order',require('./routes/order/order'))
+
+// ใบจัดส่ง
+app.use(prefix+'/delivery',require('./routes/order/delivery'))
 
 
 app.use((req, res, next) => {

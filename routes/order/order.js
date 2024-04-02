@@ -6,5 +6,10 @@ const userAuth = require('../../authentication/userAuth')
 //สร้างออเดอร์
 router.post('/',userAuth.customer,Order.add);
 
+//ดึงออเดอร์ทั้งหมด
+router.get('/',userAuth.customer,Order.get);
+//ดึงออเดอร์ตามไอดี
+router.get('/byid/:id',userAuth.customer,Order.getbyid);
+
 
 module.exports = router;

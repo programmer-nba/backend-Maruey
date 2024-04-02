@@ -38,6 +38,7 @@ const orderschema = new mongoose.Schema(
                 {
                     product_id : {type: mongoose.Schema.Types.ObjectId,ref:'product',default:null},  //(รหัสสินค้า)
                     product_name :{type:String,default:""}, //(ชื่อสินค้า)
+                    product_image:{type:String,default:""}, //(รูปสินค้า)
                     product_price :{type:Number,default:0},//(ราคา)
                     product_qty : {type:Number,default:0}, //(จำนวน)
                     product_store:{type:String,default:""}, //(คลังของใคร)
@@ -50,7 +51,7 @@ const orderschema = new mongoose.Schema(
             delivery:{type:Number,default:0}, // (ค่าขนส่ง)
             alltotal:{type:Number,default:0}, //(ราคารวม)
             delivery_type : {type:String,default:""}, //(เลือกขนส่งอะไร)
-            delivery_id :{type: mongoose.Schema.Types.ObjectId,ref:'delivery',default:null}//(รหัสขนส่ง)
+            delivery_id :{type: mongoose.Schema.Types.ObjectId,ref:'deliivery',default:null}//(รหัสขนส่ง)
         }],default:null},// รายการสินค้า
         
         total:{type:Number,default:0}, //(รวมราคา)

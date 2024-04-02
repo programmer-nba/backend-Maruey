@@ -1,6 +1,7 @@
 const {Order} = require("../../models/order/order.schema");
 const {Deliivery} = require("../../models/order/delivery.schema");
 const {Product} = require("../../models/product/product.schema");
+const {Information} = require("../../models/information/information.schema");   
 module.exports.add = async (req, res) => {
     try{
 
@@ -37,33 +38,61 @@ module.exports.add = async (req, res) => {
             })
         })
 
+        const marueyinformation = await Information.findOne();
 
         const mapsuborder = suborder.map((element) => {
-           
-            return {
-                partner_id:element.partner_id,
-                partner_name:element.partner_name,
-                partneraddress :{
-                    namedelivery:element.partner_name,
-                    telephone:element.telephone,
-                    address:element.address.address,
-                    tambon:element.address.tambon,
-                    amphure:element.address.amphure,
-                    province:element.address.province,
-                    zipcode:element.address.zipcode,
-                },//(ที่อยู่ผู้ส่ง)
-                status:"กำลังดำเนินการออเดอร์",
-                statusdetail:[{status:"กำลังดำเนินการออเดอร์",date:Date.now()}],
-                product:element.product,
-                totalproduct:element.totalproduct,
-                delivery:element.delivery,
-                alltotal:element.alltotal,
-                delivery_type:"",
-                delivery_id:null,
-                note:element.note,
+            if(element.partner_id == null && element.partner_name =='บริษัท มารวยด้วยกัน จำกัด')
+            {
+                return {
+                    partner_id:element.partner_id,
+                    partner_name:element.partner_name,
+                    partneraddress :{
+                        namedelivery:marueyinformation.namedelivery,
+                        telephone:marueyinformation.telephone,
+                        address:marueyinformation.address,
+                        tambon:marueyinformation.tambon,
+                        amphure:marueyinformation.amphure,
+                        province:marueyinformation.province,
+                        zipcode:marueyinformation.zipcode,
+                    },//(ที่อยู่ผู้ส่ง)
+                    status:"กำลังดำเนินการออเดอร์",
+                    statusdetail:[{status:"กำลังดำเนินการออเดอร์",date:Date.now()}],
+                    product:element.product,
+                    totalproduct:element.totalproduct,
+                    delivery:element.delivery,
+                    alltotal:element.alltotal,
+                    delivery_type:"",
+                    delivery_id:null,
+                    note:element.note,
+                }
             }
+            else{
+                return {
+                    partner_id:element.partner_id,
+                    partner_name:element.partner_name,
+                    partneraddress :{
+                        namedelivery:element.partner_name,
+                        telephone:element.telephone,
+                        address:element.address.address,
+                        tambon:element.address.tambon,
+                        amphure:element.address.amphure,
+                        province:element.address.province,
+                        zipcode:element.address.zipcode,
+                    },//(ที่อยู่ผู้ส่ง)
+                    status:"กำลังดำเนินการออเดอร์",
+                    statusdetail:[{status:"กำลังดำเนินการออเดอร์",date:Date.now()}],
+                    product:element.product,
+                    totalproduct:element.totalproduct,
+                    delivery:element.delivery,
+                    alltotal:element.alltotal,
+                    delivery_type:"",
+                    delivery_id:null,
+                    note:element.note,
+                }
+            }
+            
         })
-        console.log(mapsuborder)
+     
        const addOrder = new Order({
             orderref: await runreferralcode(),
             customer_id:req.body.customer_id,
@@ -86,6 +115,7 @@ module.exports.add = async (req, res) => {
             const addDelivery = new Deliivery({
                 delivery_type:"",
                 order_id:saveOrder._id,
+                customer_id:req.body.customer_id,
                 refdelivery:await rundeliverycode(),
                 address:saveOrder.address,
                 partneraddress:element.partneraddress,
@@ -93,11 +123,24 @@ module.exports.add = async (req, res) => {
                 partner_name:element.partner_name,
                 tracking:"",
                 product:element.product,
+                totalproduct:element.totalproduct,
+                delivery:element.delivery,
+                alltotal:element.alltotal,
                 status:"กำลังเตรียมจัดส่ง",
                 detail:[{status:"กำลังเตรียมจัดส่ง",date:Date.now()}],
                 note:element.note
             })
-            await addDelivery.save()    
+            const adds = await addDelivery.save()
+            const order = await Order.findOne({_id:saveOrder._id})
+            order.suborder.forEach(async (element2) => {
+                
+                if(JSON.parse(JSON.stringify(element2.partner_id)) == JSON.parse(JSON.stringify(element.partner_id)) )
+                {
+                    element2.delivery_id = adds._id
+                    // element2.delivery_type = adds.delivery_type
+                }
+            })    
+            await order.save()
         })
 
         return res.status(200).send({status:true,message:"เพิ่มออเดอร์สำเร็จ",data:saveOrder})
@@ -105,6 +148,25 @@ module.exports.add = async (req, res) => {
     }catch(error){
         return res.status(500).send({status:false,error:error.message});
     }
+}
+
+module.exports.get = async (req, res) => {
+    try{
+        const order = await Order.find()
+        return res.status(200).send({status:true,data:order})
+    }catch(error){
+        return res.status(500).send({status:false,error:error.message});
+    }
+}
+
+module.exports.getbyid = async (req, res) => {
+    try{
+        const order = await Order.findOne({_id:req.params.id}).populate('customer_id').populate('suborder.delivery_id')
+        return res.status(200).send({status:true,data:order})
+    }catch(error){
+        return res.status(500).send({status:false,error:error.message});
+    }
+
 }
 
 //รันเลขผู้แนะนำ

@@ -59,6 +59,8 @@ app.use(prefix+'/order',require('./routes/order/order'))
 // ใบจัดส่ง
 app.use(prefix+'/delivery',require('./routes/order/delivery'))
 
+//ข้อมูลพื้นฐาน
+app.use(prefix+'/information',require('./routes/information/information'))
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // หรือกำหนด origin ที่เฉพาะเจาะจง

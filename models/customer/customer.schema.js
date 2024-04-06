@@ -55,9 +55,9 @@ const customerschema = new mongoose.Schema(
             level_eight:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ8)
             level_nine:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ9)
             level_ten:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, //(รหัสระดับ10)
-        }
-
-
+        },
+        money:{type:Number,default:0}, //(เงิน)
+        marueycoins:{type:Number,default:0}, //(เหรียญมารวย)
 },{timestamps: true});
 
 
@@ -71,7 +71,7 @@ const validatecustomer = (data) => {
       prefix:Joi.string().required().label("กรุณากรอกคำนำหน้า"),
       name:Joi.string().required().label("กรุณากรอกชื่อ-นามสกุล"),
       sex:Joi.string().required().label("กรุณากรอกเพศ"),
-      recommendedcode: Joi.string().label("Recommended Code")
+      recommendedcode: Joi.string().allow('').label("Recommended Code")
     });
     return schema.validate(data);
   };

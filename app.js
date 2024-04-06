@@ -62,6 +62,11 @@ app.use(prefix+'/delivery',require('./routes/order/delivery'))
 //ข้อมูลพื้นฐาน
 app.use(prefix+'/information',require('./routes/information/information'))
 
+//ข้อมูลรายได้
+app.use(prefix+'/shareincome',require('./routes/shareincome/shareincome'))
+
+
+
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // หรือกำหนด origin ที่เฉพาะเจาะจง
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');

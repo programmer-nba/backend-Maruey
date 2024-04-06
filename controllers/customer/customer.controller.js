@@ -4,11 +4,13 @@ const { Customer, validatecustomer } = require("../../models/customer/customer.s
 const {Partner} = require("../../models/partner/partner.schema");
 const Checkalluse = require("../../functions/check-alluser");
 
+const { ObjectId } = require('mongodb');
 const multer = require("multer");
 const {
   uploadFileCreate,
   deleteFile,
 } = require("../../functions/uploadfilecreate");
+const { object } = require("joi");
 
 const storage = multer.diskStorage({
   filename: function (req, file, cb) {
@@ -283,6 +285,31 @@ module.exports.pdpa = async (req, res) => {
   
 }
 
+module.exports.test = async (req, res) => {
+  try{
+    const upline ={
+      recommendedcode:"Customer2024040600009",
+      level_one: new ObjectId("6610d1646fcab2c7d19352b0"),
+      level_two: new ObjectId("6610d1246fcab2c7d1935286"),
+      level_three: new ObjectId("6610d0e06fcab2c7d1935268"),
+      level_four: new ObjectId("6610d0996fcab2c7d193523e"),
+      level_five: new ObjectId("6610d0606fcab2c7d1935220"),
+      level_six: new ObjectId("66610d0266fcab2c7d19351f6"),
+      level_seven: new ObjectId("6610cfd76fcab2c7d19351cc"),
+      level_eight: new ObjectId("6610cf946fcab2c7d19351a1"),
+      level_nine: new ObjectId("6610cf526fcab2c7d1935176"),
+      level_ten: new ObjectId("6610cefc3088cd8615733bc9"),
+    };
+
+    
+    const data = await Customer.findByIdAndUpdate("65fe40cb571f3592f27398b9",{upline:upline})
+ 
+    return res.status(200).json({ status:true,message: "ดึงข้อมูลสำเร็จ",data:data});
+
+  }catch(err){
+    return res.status(500).json({ status:false,message: err.message });
+  }
+}
 
 
 

@@ -55,7 +55,7 @@ module.exports.add = async (req, res) => {
                         province:marueyinformation.province,
                         zipcode:marueyinformation.zipcode,
                     },//(ที่อยู่ผู้ส่ง)
-                    status:"กำลังดำเนินการออเดอร์",
+                    
                     statusdetail:[{status:"กำลังดำเนินการออเดอร์",date:Date.now()}],
                     product:element.product,
                     totalproduct:element.totalproduct,
@@ -97,6 +97,7 @@ module.exports.add = async (req, res) => {
             orderref: await runreferralcode(),
             customer_id:req.body.customer_id,
             address:req.body.address,
+            status:"กำลังดำเนินการออเดอร์",
             suborder:mapsuborder,
             total:req.body.total,
             totaldelivery:req.body.totaldelivery,
@@ -152,7 +153,7 @@ module.exports.add = async (req, res) => {
 
 module.exports.get = async (req, res) => {
     try{
-        const order = await Order.find()
+        const order = await Order.find().populate('customer_id').populate('suborder.delivery_id')
         return res.status(200).send({status:true,data:order})
     }catch(error){
         return res.status(500).send({status:false,error:error.message});

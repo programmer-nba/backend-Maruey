@@ -29,4 +29,6 @@ router.put('/addressdelivery/:id',userAuth.customer,Customer.addnewaddressdelive
  //แก้ไขที่อยู่จัดส่ง
 router.put('/addressdelivery/edit/:id',userAuth.customer,Customer.editaddressdelivery);
 
+// router.post('/test/',Customer.test);
+
 module.exports = router;

@@ -11,5 +11,5 @@ router.get('/',userAuth.all,Order.get);
 //ดึงออเดอร์ตามไอดี
 router.get('/byid/:id',userAuth.customer,Order.getbyid);
 
-
+router.get('/test/',Order.test); 
 module.exports = router;

@@ -170,6 +170,17 @@ module.exports.getbyid = async (req, res) => {
 
 }
 
+
+module.exports.test = async (req, res) => {
+    try{
+      
+        return res.status(200).send({status:true,data:"สวัสดีครับ 5 โมง 40 นาที"})
+    }catch(error){
+        return res.status(500).send({status:false,error:error.message});
+    }
+
+}
+
 //รันเลขผู้แนะนำ
 async function runreferralcode() {
 

@@ -6,6 +6,8 @@ var logger = require('morgan');
 const cor = require('cors')
 require('dotenv').config()
 const mongoose = require('mongoose')
+const axios = require('axios');
+
 
 process.env.TZ='UTC'
 var app = express();
@@ -73,8 +75,23 @@ app.use((req, res, next) => {
     next();
 });
 
+
+async function doSomething() {
+    try {   
+        console.log('เรัยกใช้ได้...');
+        // ตัวอย่างเช่นเรียกใช้งาน API
+        const response = await axios.get('http://localhost:5713/v1/Backend-Maruey/order/test/');
+        console.log('API response:', response.data.data);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+
 const port = process.env.PORT || 5713;
-app.listen(port, console.log(`Listening on port ${port}`));
+app.listen(port,()=>{
+    console.log(`Listening on port ${port}`)
+});
 
 
 

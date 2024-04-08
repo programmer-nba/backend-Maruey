@@ -7,6 +7,10 @@ const orderschema = new mongoose.Schema(
         orderref:{type:String,require:true,default:""}, // รหัสอ้างอิงออเดอร์
         customer_id :{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null}, // (ไอดีลูกค้า)
         status :{type:String,default:"กำลังดำเนินการออเดอร์"} ,  //“กำลังดำเนินการออเดอร์” , “ออเดอร์สำเร็จ” , “ยกเลิกออเดอร์” 
+        statusdetail:{type:[{
+            status : {type:String,default:""}, // สถานะ
+            date : {type:Date,default:Date.now()}, // วันที่
+        }],default:{status:"กำลังดำเนินการออเดอร์",date:Date.now()}},// รายละเอียดสถานะ
         address:{
             name:{type:String,default:""},
             namedelivery: {type:String,default:""}, //(ชื่อผู้รับ)
@@ -31,10 +35,7 @@ const orderschema = new mongoose.Schema(
                 zipcode: {type:String,default:""},
             }, //(ที่อยู่ผู้ส่ง)
             
-            statusdetail:{type:[{
-                status : {type:String,default:""}, // สถานะ
-                date : {type:Date,default:Date.now()}, // วันที่
-            }],default:{status:"กำลังดำเนินการออเดอร์",date:Date.now()}},// รายละเอียดสถานะ
+           
             product : {type:[
                 {
                     product_id : {type: mongoose.Schema.Types.ObjectId,ref:'product',default:null},  //(รหัสสินค้า)

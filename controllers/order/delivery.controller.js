@@ -2,7 +2,7 @@ const {Deliivery} = require("../../models/order/delivery.schema");
 const {Percentprofit} = require("../../models/percentprofit/percentprofit.schema");
 const {Shareincome} = require("../../models/shareincome/shareincome.schema");
 const {Customer} = require("../../models/customer/customer.schema");
-const { object } = require("joi");
+const {Order} = require("../../models/order/order.schema");
 
 module.exports.get = async (req, res) => {
     try{
@@ -153,6 +153,8 @@ module.exports.getproduct = async (req, res) => {
        
        
         //เช็คว่ามีคนแชร์ลิงค์ไหม
+        let other = 0
+        let totalcustomer = 0
         let codeshareproduct = ""
         
         let objectsshareproduct 
@@ -168,27 +170,27 @@ module.exports.getproduct = async (req, res) => {
         if(codeshareproduct ==  "")
         {
             //ถ้าไม่มีคนแชร์ลิงค์ ให้เพิ่มเข้าไปใน maruey
-            maruey = maruey + sharelinkproduct
-           
+            other = other + sharelinkproduct
             sharelinkproduct = 0;
             objectsshareproduct = null
         }else{
             const customer_id = await Customer.findOne({referralcode:codeshareproduct})
             if(customer_id == null) {
                  //ถ้าไม่มีคนแชร์ลิงค์ ให้เพิ่มเข้าไปใน maruey
-                maruey = maruey + sharelinkproduct
-                sharelinkproduct = 0;
+                 other = other + sharelinkproduct
+                 sharelinkproduct = 0;
                 objectsshareproduct = null
             }else{
                 objectsshareproduct = {
                     customer_id:customer_id?._id ,
                     money:sharelinkproduct
                 }
+                totalcustomer = totalcustomer + sharelinkproduct
                 const addmoney = await Customer.findByIdAndUpdate(objectsshareproduct?.customer_id,{$inc:{money:sharelinkproduct}})
             }
             
         }
-
+        
         let objectlevelone 
         let objectleveltwo 
         let objectlevelthree
@@ -210,6 +212,7 @@ module.exports.getproduct = async (req, res) => {
                         customer_id:customerdata.upline.level_one,
                         money:uplinelv1
                     }
+                    totalcustomer = totalcustomer + uplinelv1
                     const addmoney = await Customer.findByIdAndUpdate(customerdata.upline.level_one,{$inc:{money:uplinelv1}})
 
                 }else{
@@ -224,9 +227,10 @@ module.exports.getproduct = async (req, res) => {
                         customer_id:customerdata.upline.level_two,
                         money:uplinelv2
                     }
+                    totalcustomer = totalcustomer + uplinelv2
                     const addmoney = await Customer.findByIdAndUpdate(customerdata.upline.level_two,{$inc:{money:uplinelv2}})
                 }else{
-                    maruey = maruey + uplinelv2
+                    other = other + uplinelv2
                     uplinelv2 = 0
                     objectleveltwo = null
                 }
@@ -237,9 +241,10 @@ module.exports.getproduct = async (req, res) => {
                         customer_id:customerdata.upline.level_three,
                         money:uplinelv3
                     }
+                    totalcustomer = totalcustomer + uplinelv3
                     const addmoney = await Customer.findByIdAndUpdate(customerdata.upline.level_three,{$inc:{money:uplinelv3}})
                 }else{
-                    maruey = maruey + uplinelv3
+                    other = other + uplinelv3
                     uplinelv3 = 0
                     objectlevelthree = null
                 }
@@ -250,9 +255,10 @@ module.exports.getproduct = async (req, res) => {
                         customer_id:customerdata.upline.level_four,
                         money:uplinelv4
                     }
+                    totalcustomer = totalcustomer + uplinelv4
                     const addmoney = await Customer.findByIdAndUpdate(customerdata.upline.level_four,{$inc:{money:uplinelv4}})
                 }else{
-                    maruey = maruey + uplinelv4
+                    other = other + uplinelv4
                     uplinelv4 = 0
                     objectlevelfour = null
                 }
@@ -262,9 +268,10 @@ module.exports.getproduct = async (req, res) => {
                         customer_id:customerdata.upline.level_five,
                         money:uplinelv5
                     }
+                    totalcustomer = totalcustomer + uplinelv5
                     const addmoney = await Customer.findByIdAndUpdate(customerdata.upline.level_five,{$inc:{money:uplinelv5}})
                 }else{
-                    maruey = maruey + uplinelv5
+                    other = other + uplinelv5
                     uplinelv5 = 0
                     objectlevelfive = null
                 }
@@ -274,9 +281,10 @@ module.exports.getproduct = async (req, res) => {
                         customer_id:customerdata.upline.level_six,
                         money:uplinelv6
                     }
+                    totalcustomer = totalcustomer + uplinelv6
                     const addmoney = await Customer.findByIdAndUpdate(customerdata.upline.level_six,{$inc:{money:uplinelv6}})
                 }else{
-                    maruey = maruey + uplinelv6
+                    other = other + uplinelv6
                     uplinelv6 = 0
                     objectlevelsix = null
                 }
@@ -286,9 +294,10 @@ module.exports.getproduct = async (req, res) => {
                         customer_id:customerdata.upline.level_seven,
                         money:uplinelv7
                     }
+                    totalcustomer = totalcustomer + uplinelv7
                     const addmoney = await Customer.findByIdAndUpdate(customerdata.upline.level_seven,{$inc:{money:uplinelv7}})
                 }else{
-                    maruey = maruey + uplinelv7
+                    other = other + uplinelv7
                     uplinelv7 = 0
                     objectlevelseven = null
                 }
@@ -298,9 +307,10 @@ module.exports.getproduct = async (req, res) => {
                         customer_id:customerdata.upline.level_eight,
                         money:uplinelv8
                     }
+                    totalcustomer = totalcustomer + uplinelv8
                     const addmoney = await Customer.findByIdAndUpdate(customerdata.upline.level_eight,{$inc:{money:uplinelv8}})
                 }else{
-                    maruey = maruey + uplinelv8
+                    other = other + uplinelv8
                     uplinelv8 = 0
                     objectleveleight = null
                 }
@@ -310,9 +320,10 @@ module.exports.getproduct = async (req, res) => {
                         customer_id:customerdata.upline.level_nine,
                         money:uplinelv9
                     }
+                    totalcustomer = totalcustomer + uplinelv9
                     const addmoney = await Customer.findByIdAndUpdate(customerdata.upline.level_nine,{$inc:{money:uplinelv9}})
                 }else{
-                    maruey = maruey + uplinelv9
+                    other = other + uplinelv9
                     uplinelv9 = 0
                     objectlevelnine = null
                 }
@@ -322,9 +333,10 @@ module.exports.getproduct = async (req, res) => {
                         customer_id:customerdata.upline.level_ten,
                         money:uplinelv10
                     }
+                    totalcustomer = totalcustomer + uplinelv10
                     const addmoney = await Customer.findByIdAndUpdate(customerdata.upline.level_ten,{$inc:{money:uplinelv10}})
                 }else{
-                    maruey = maruey + uplinelv10
+                    other = other + uplinelv10
                     uplinelv10 = 0
                     objectlevelten = null
                 }
@@ -349,8 +361,6 @@ module.exports.getproduct = async (req, res) => {
        
         
 
-     
-
         //เพิ่มข้อมูลลง shareincome
         const data = new Shareincome({
             order_id: delivery.order_id,
@@ -358,7 +368,10 @@ module.exports.getproduct = async (req, res) => {
             alltotal: delivery.alltotal,
             maruey: maruey,
             partner: objectpartner,
+            other: other,
+
             customer: {
+                totalcustomer:totalcustomer,
                 shareproduct:objectsshareproduct, // คนแชร์ลิงค์สินค้า
                 level_one: objectlevelone,
                 level_two: objectleveltwo,
@@ -376,7 +389,13 @@ module.exports.getproduct = async (req, res) => {
         //save
         const shareincomesave = await data.save()
 
-        if(add && shareincomesave){
+        const editdelivery = await Deliivery.findByIdAndUpdate(req.params.id,{$set:{shareincome_id:shareincomesave._id}})
+        const statusdetail = {
+            status : "ออเดอร์สำเร็จ",
+            date : Date.now()
+        }
+        const editorder = await Order.findByIdAndUpdate(delivery.order_id,{status:"ออเดอร์สำเร็จ",$push:{statusdetail:statusdetail}})
+        if(add && shareincomesave && editdelivery && editorder){
             return res.status(200).send({ status: true, message: "รับสินค้าสำเร็จ", data: add ,shareincome:shareincomesave})
         }else{
             return res.status(400).send({ status: false, message: "รับสินค้าไม่สำเร็จ" })
@@ -384,6 +403,42 @@ module.exports.getproduct = async (req, res) => {
 
     
         
+    }catch(err){
+        return res.status(500).send({ status: false, message: err.message })
+    }
+}
+
+
+module.exports.getbypartnerorder = async (req, res) => {
+    try{
+        const data = await Deliivery.find({ partner_id: req.params.id}).populate('order_id').populate('customer_id').populate('shareincome_id')
+        return res.status(200).send({ status: true, data: data })
+    }catch(err){
+        return res.status(500).send({ status: false, message: err.message })
+    }
+}
+
+
+//ดึงข้อมูลที่มี partner_id ไม่เท่ากับ ว่าง
+module.exports.getbypartnerall = async (req, res) => {
+    try{
+        //partner_id ไม่เท่ากับ ว่าง
+        const data = await Deliivery.find().populate('order_id').populate('customer_id').populate('shareincome_id')
+        //partner_id ไม่เท่ากับ ว่าง
+        const data2 = data.filter((item) => item.partner_id != null)
+        return res.status(200).send({ status: true, data: data2 })
+    }catch(err){
+        return res.status(500).send({ status: false, message: err.message })
+    }
+}
+
+//ดึงข้อมูลที่มี partner_name เท่ากับ บริษัท มารวยด้วยกัน จำกัด
+
+module.exports.getbymarueyall = async (req, res) => {
+    try{
+        //partner_name เท่ากับ บริษัท มารวยด้วยกัน จำกัด
+        const data = await Deliivery.find({partner_name:"บริษัท มารวยด้วยกัน จำกัด"}).populate('order_id').populate('customer_id').populate('shareincome_id')
+        return res.status(200).send({ status: true, data: data })
     }catch(err){
         return res.status(500).send({ status: false, message: err.message })
     }

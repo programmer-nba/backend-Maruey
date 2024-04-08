@@ -11,7 +11,9 @@ const ShareincomeSchema = new mongoose.Schema(
         partner_id:{type: mongoose.Schema.Types.ObjectId,ref:'partner',default:null},
         money:{type:Number,default:0}
     },default:null},
+    other:{type:Number,default:null},
     customer: {
+      totalcustomer: {type:Number,default:0},
       shareproduct:{type:{
         customer_id:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null},
         money:{type:Number,default:0}, //(ให้คนที่แชร์ลิงค์สินค้า)
@@ -58,6 +60,7 @@ const ShareincomeSchema = new mongoose.Schema(
             money:{type:Number,default:0} //(ให้คนที่แนะนำเพื่อน)
         },default:null},
     },
+    
   },
   {timestamps: true}
 );

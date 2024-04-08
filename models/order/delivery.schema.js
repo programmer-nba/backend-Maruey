@@ -52,7 +52,8 @@ const deliiveryschema = new mongoose.Schema(
             status : {type:String,default:""}, // สถานะ
             date : {type:Date,default:Date.now()}, // วันที่
         }],default:null},
-        note:{type:String,default:""} //(หมายเหตุขนส่ง)
+        note:{type:String,default:""}, //(หมายเหตุขนส่ง)
+        shareincome_id:{type: mongoose.Schema.Types.ObjectId,ref:'shareincome',default:null}, // รหัสแชร์รายได้
     },{timestamps: true});
 
 

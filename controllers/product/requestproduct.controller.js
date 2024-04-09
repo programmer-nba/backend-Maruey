@@ -150,7 +150,8 @@ module.exports.approve = async (req, res) => {
             product_detail:data.product_detail,
             product_stock:data.product_stock,
             product_image:data.product_image,
-            product_status : true
+            product_status : true,
+            rating:5
         });
         const add = await product.save();
         if(data && add )

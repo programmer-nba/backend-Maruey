@@ -21,6 +21,7 @@ const ProductSchema = new mongoose.Schema(
     product_stock:{type:Number,require:true}, //จำนวนสินค้า
     product_image:{type:String,default:""}, //รูปภาพสินค้า
     product_status :{type:Boolean,default:true}, //สถานะสินค้า (true: เปิดขาย , false: ปิดขาย)
+    rating:{type:Number,default:0}, //(จำนวนดาว)
   },
   {timestamps: true}
 );

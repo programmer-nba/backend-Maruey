@@ -54,6 +54,7 @@ const deliiveryschema = new mongoose.Schema(
         }],default:null},
         note:{type:String,default:""}, //(หมายเหตุขนส่ง)
         shareincome_id:{type: mongoose.Schema.Types.ObjectId,ref:'shareincome',default:null}, // รหัสแชร์รายได้
+        review_id:{type: mongoose.Schema.Types.ObjectId,ref:'review',default:null}, // รหัสรีวิว
     },{timestamps: true});
 
 

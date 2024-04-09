@@ -67,6 +67,8 @@ app.use(prefix+'/information',require('./routes/information/information'))
 //ข้อมูลรายได้
 app.use(prefix+'/shareincome',require('./routes/shareincome/shareincome'))
 
+//รีวิว
+app.use(prefix+'/review',require('./routes/order/review'))
 
 
 app.use((req, res, next) => {

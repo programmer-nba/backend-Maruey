@@ -38,7 +38,7 @@ const PartnerSchema = new mongoose.Schema(
         iden_number:{type:String,default:""}, //(เลขบัตรประชาชน)
 	    iden_image:{type:String,default:""}, //(รูปภาพบัตรประชาชน)
     },default:null},
-    commission :{type:Number,default:0} //(ค่าคอมมิสชั่น)
+    income :{type:Number,default:0} //(ค่าคอมมิสชั่น)
   },
   {timestamps: true}
 );

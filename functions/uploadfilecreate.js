@@ -27,17 +27,18 @@ async function uploadFileCreate(req, res, {i, reqFiles}) {
     body: fs.createReadStream(filePath),
   };
   try {
+    
     const response = await drive.files.create({
       resource: fileMetaData,
       media: media,
-    });
+    }).catch((error)=>{return console.log(error.message)});
+    if(!response) return console.log("error");
 
     generatePublicUrl(response.data.id);
     reqFiles.push(response.data.id);
-    console.log(response.data.id);
     return response.data.id;
   } catch (error) {
-    res.status(500).send({message: error.message});
+    return res.status(500).send({message: error.message});
   }
 }
 
@@ -78,10 +79,10 @@ async function deleteFile(fileId) {
     supportsAllDrives: false,
     // Deprecated use supportsAllDrives instead.
     supportsTeamDrives: false,
-  }).catch((error)=>{return false});
+  }).catch((error)=>{return console.log(error.message)});
 
-  // console.log(res);
-  return res.data;
+  console.log(res);
+  return res?.data;
 }
 
 module.exports = {uploadFileCreate, deleteFile};

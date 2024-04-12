@@ -178,6 +178,7 @@ const customer = async(req, res, next)=>{
  }
 
 
+
 const all = async (req,res,next) => {
     try{
         let token = req.headers["token"]

@@ -1,71 +1,34 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
 
-const ShareincomeSchema = new mongoose.Schema(
+const withdrawmoneySchema = new mongoose.Schema(
   {
-    order_id: {type: mongoose.Schema.Types.ObjectId,ref:'order',default:null},
-    delivery_id: {type: mongoose.Schema.Types.ObjectId,ref:'deliivery',default:null},
-    alltotal: {type:Number,required: true},
-    maruey: {type:Number,required: true},
-    partner: {type: {
-        partner_id:{type: mongoose.Schema.Types.ObjectId,ref:'partner',default:null},
-        money:{type:Number,default:0}
+    customer_id:{type: mongoose.Schema.Types.ObjectId, ref: 'customer', default:null} ,
+    partner_id:{type: mongoose.Schema.Types.ObjectId, ref: 'partner', default:null} ,
+    type: { type: String, required: true }, // ถอนเงิน หรือ เติมเงิน
+    money: { type: Number, required: true },
+    date: { type: Date, default: Date.now() },
+    status: { type: Boolean, default: false }, // true: จ่ายเงินสำเร็จ, false: รอดำเนินการ
+    statusdetail: { type: [{
+        status: { type: String, required: true }, // รอดำเนินการ, สำเร็จ
+        date: { type: Date, default: Date.now() },
+    }],default:[{
+        status: "รอดำเนินการ",
+        date: Date.now()
+    }]},
+    bank:{type:{
+        accountname:{type:String,default:""}, //(ชื่อบัญชี)
+        accountnumber:{type:String,default:""}, //(เลขบัญชี) 
+        name:{type:String,default:""}, //(ชื่อธนาคาร)
+        branch:{type:String,default:""}, //(สาขา)
+       
     },default:null},
-    other:{type:Number,default:null},
-    customer: {
-      totalcustomer: {type:Number,default:0},
-      shareproduct:{type:{
-        customer_id:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null},
-        money:{type:Number,default:0}, //(ให้คนที่แชร์ลิงค์สินค้า)
-      },default:null}, // คนแชร์ลิงค์สินค้า
-      
-      level_one: {type:{
-        customer_id:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null},
-        money:{type:Number,default:0} //(ให้คนที่แนะนำเพื่อน)
-      },default:null},
-        level_two: {type:{
-            customer_id:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null},
-            money:{type:Number,default:0} //(ให้คนที่แนะนำเพื่อน)
-        },default:null},
-        level_three: {type:{
-            customer_id:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null},
-            money:{type:Number,default:0} //(ให้คนที่แนะนำเพื่อน)
-        },default:null},
-        level_four: {type:{
-            customer_id:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null},
-            money:{type:Number,default:0} //(ให้คนที่แนะนำเพื่อน)
-        },default:null},
-        level_five: {type:{
-            customer_id:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null},
-            money:{type:Number,default:0} //(ให้คนที่แนะนำเพื่อน)
-        },default:null},
-        level_six: {type:{
-            customer_id:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null},
-            money:{type:Number,default:0} //(ให้คนที่แนะนำเพื่อน)
-        },default:null},
-        level_seven: {type:{
-            customer_id:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null},
-            money:{type:Number,default:0} //(ให้คนที่แนะนำเพื่อน)
-        },default:null},
-        level_eight: {type:{
-            customer_id:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null},
-            money:{type:Number,default:0} //(ให้คนที่แนะนำเพื่อน)
-        },default:null},
-        level_nine: {type:{
-            customer_id:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null},
-            money:{type:Number,default:0} //(ให้คนที่แนะนำเพื่อน)
-        },default:null},
-        level_ten: {type:{
-            customer_id:{type: mongoose.Schema.Types.ObjectId,ref:'customer',default:null},
-            money:{type:Number,default:0} //(ให้คนที่แนะนำเพื่อน)
-        },default:null},
-    },
-    
+    admin_id:{type: mongoose.Schema.Types.ObjectId, ref: 'admin', default:null} ,
   },
   {timestamps: true}
 );
 
-const Shareincome = mongoose.model("shareincome", ShareincomeSchema);
+const Withdrawmoney = mongoose.model("withdrawmoney", withdrawmoneySchema);
 
 
-module.exports = {Shareincome};
+module.exports = {Withdrawmoney};

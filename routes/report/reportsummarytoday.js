@@ -17,7 +17,4 @@ router.delete('/:id',userAuth.admin,reportsummarytoday.delete);
 
 
 
-
-
-
 module.exports = router;

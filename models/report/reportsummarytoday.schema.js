@@ -2,8 +2,10 @@ const mongoose = require("mongoose");
 
 const reportsummarytodayschema = new mongoose.Schema(
     {
-        date:{type:String,require:true}, // วันที่
-        money:{type:Number,require:true}, // เงินคงเหลือในระบบ
+        date:{type:Date,require:true}, // วันที่
+        partner:{type:Number,require:true}, // จำนวน partner ทั้งหมด
+        customer:{type:Number,require:true}, // จำนวนลูกค้าทั้งหมด
+        money:{type:Number,require:true}, //  ยอดรวมเงินคงเหลือในระบบ
 
     },
 );

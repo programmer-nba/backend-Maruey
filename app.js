@@ -70,6 +70,9 @@ app.use(prefix+'/shareincome',require('./routes/shareincome/shareincome'))
 //รีวิว
 app.use(prefix+'/review',require('./routes/order/review'))
 
+//สรุปยอดงานคงเหลือรายวัน
+app.use(prefix+'/reportsummarytoday',require('./routes/report/reportsummarytoday'))
+
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // หรือกำหนด origin ที่เฉพาะเจาะจง

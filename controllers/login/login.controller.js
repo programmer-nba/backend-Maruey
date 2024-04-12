@@ -125,3 +125,24 @@ module.exports.getme = async (req,res) =>{
           return res.status(500).send({status:false,error:error.message});
     }
 }
+
+
+//gen token เอาไว้ใช้ด้านนอก
+module.exports.gentoken = async (req,res) =>{
+    try {
+        const payload = {
+            _id:"0",
+            email:"marueypublic",
+            telephone:"0000000000",
+            name : "marueypublic",
+            row:"public",
+            position:"public"
+        }
+        const secretKey = process.env.SECRET_KEY
+        const token = jwt.sign(payload,secretKey)
+        return res.status(200).send({ status: true, data: payload, token: token})
+    }
+    catch (error) {
+        return res.status(500).send({status:false,error:error.message});
+    }
+}

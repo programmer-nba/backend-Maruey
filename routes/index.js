@@ -19,7 +19,7 @@ router.put('/deleteimage/',async(req,res)=>{
     idarray.forEach(async (element) => {
      
       const data =extractIdFromUrl(element);
-      console.log(data)
+     
       await deleteFile(data);
     });
     

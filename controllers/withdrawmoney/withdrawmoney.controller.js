@@ -5,7 +5,7 @@ const {Partner} = require("../../models/partner/partner.schema");
 //เพิ่มข้อมูลถอนเงิน
 module.exports.add = async (req, res) => {
     try{
-        if(req.body.customer_id !== undefined || req.body.customer_id !=='') 
+        if(req.body.customer_id !== undefined && req.body.customer_id !=='') 
         {
             const customer = await Customer.findById(req.body.customer_id);
             if(!customer)
@@ -19,7 +19,7 @@ module.exports.add = async (req, res) => {
             }
             //ภ้าพอก็ให้หักเงิน
             const customermoney = await Customer.findByIdAndUpdate(req.body.customer_id,{$inc:{money:-req.body.money}},{new:true});
-        }else if(req.body.partner_id !== undefined || req.body.partner_id !=='')
+        }else if(req.body.partner_id !== undefined && req.body.partner_id !=='')
         {
             const partner = await Partner.findById(req.body.partner_id);
             if(!partner)
@@ -52,16 +52,18 @@ module.exports.add = async (req, res) => {
 //ดึงข้อมูลถอนเงินทั้งหมด
 module.exports.getAll = async (req, res) => {
     try {
-        const withdrawmoney = await Withdrawmoney.find();
+        //กำหนด customer_id ต้องไม่เท่ากับ null
+        const withdrawmoney = await Withdrawmoney.find({customer_id:{$ne:null}}).populate('customer_id');
         return res.status(200).send({status:true,data:withdrawmoney});
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message })
     }
 }
+
 //ดึงข้อมูล by id ถอนเงิน
 module.exports.getByID = async (req, res) => {
     try {
-        const withdrawmoney = await Withdrawmoney.findById(req.params.id);
+        const withdrawmoney = await Withdrawmoney.findOne({_id:req.params.id});
         return res.status(200).send({status:true,data:withdrawmoney});
     } catch (error) {
         return res.status(500).send({ status: false, message: error.message })
@@ -80,7 +82,6 @@ module.exports.getByCustomerID = async (req, res) => {
     }
 }
 
-
 //ดึงข้อมูล by partner_id ถอนเงิน
 module.exports.getByPartnerID = async (req, res) => {
     try{
@@ -92,9 +93,42 @@ module.exports.getByPartnerID = async (req, res) => {
     }
 }
 
+//ดึงข้อมูล by status false ถอนเงิน
+module.exports.getByStatusFalse = async (req, res) => {
+    try{
+        const withdrawmoney = await Withdrawmoney.find({status:false,customer_id:{$ne:null}}).populate('customer_id');
+        return res.status(200).send({status:true,data:withdrawmoney});
+
+    }catch(err){
+        return res.status(500).send({ status: false, message: err.message })
+    }
+}
+
+//ดึงข้อมูลทั้งหมดการถอนเฉพาะของ partner
+module.exports.getAllPartner = async (req, res) => {
+    try {
+        //กำหนด customer_id ต้องไม่เท่ากับ null
+        const withdrawmoney = await Withdrawmoney.find({partner_id:{$ne:null}}).populate('partner_id');
+        return res.status(200).send({status:true,data:withdrawmoney});
+    } catch (error) {
+        return res.status(500).send({ status: false, message: error.message })
+    }
+}
+//ดึงข้้อมูลเฉพาะ status เป็น false ของ partner
+module.exports.getByStatusFalsePartner = async (req, res) => {
+    try{
+        const withdrawmoney = await Withdrawmoney.find({status:false,partner_id:{$ne:null}}).populate('partner_id');
+        return res.status(200).send({status:true,data:withdrawmoney});
+
+    }catch(err){
+        return res.status(500).send({ status: false, message: err.message })
+    }
+}
+
 //แก้ไขข้อมูลถอนเงิน
 module.exports.edit = async (req, res) => {
     try {
+        
         const withdrawmoney = await Withdrawmoney.findByIdAndUpdate(req.params.id,req.body,{new:true});
         return res.status(200).send({status:true,data:withdrawmoney});
     }
@@ -118,9 +152,22 @@ module.exports.delete = async (req, res) => {
 //จ่ายเงินแล้ว
 module.exports.success = async (req, res) => {
     try {
-
+      
         const withdrawmoney = await Withdrawmoney.findByIdAndUpdate(req.params.id,{admin_id:req.body.admin_id,status:true,$push:{statusdetail:{status:"จ่ายเงินสำเร็จ"}}},{new:true});
         return res.status(200).send({status:true,data:withdrawmoney});
+    }
+    catch (error) {
+        return res.status(500).send({ status: false, message: error.message })
+    }
+}
+
+// จ่ายเงินหลายรายการ
+module.exports.successMany = async (req, res) => {
+    try {
+  
+        const withdrawmoney = await Withdrawmoney.updateMany({ _id: { $in: req.body.id } }, { admin_id: req.body.admin_id, status: true, $push: { statusdetail: { status: "จ่ายเงินสำเร็จ" } } }, { new: true });
+        return res.status(200).send({ status: true, data: withdrawmoney });
+    
     }
     catch (error) {
         return res.status(500).send({ status: false, message: error.message })

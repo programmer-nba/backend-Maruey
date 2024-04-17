@@ -44,7 +44,7 @@ module.exports.getbymaruey = async (req, res) => {
 
 module.exports.getbypartner = async (req, res) => {
     try{
-        console.log("test")
+        
         const data = await Deliivery.find({partner_id:req.params.id}).populate('order_id').populate('customer_id')
         return res.status(200).send({ status: true, data: data })
     }catch(err){

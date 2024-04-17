@@ -30,7 +30,7 @@ const PartnerSchema = new mongoose.Schema(
     bank:{type:{
         accountname:{type:String,default:""}, //(ชื่อบัญชี)
         accountnumber:{type:String,default:""}, //(เลขบัญชี) 
-	    namebank:{type:String,default:""}, //(ชื่อธนาคาร)
+	    name:{type:String,default:""}, //(ชื่อธนาคาร)
         branch:{type:String,default:""}, //(สาขา)
         imgbank:{type:String,default:""} // (รูปภาพบัญชี)
     },default:null},

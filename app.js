@@ -76,6 +76,9 @@ app.use(prefix+'/reportsummarytoday',require('./routes/report/reportsummarytoday
 // ถอนเงิน
 app.use(prefix+'/withdrawmoney',require('./routes/withdrawmoney/withdrawmoney'))
 
+//report
+app.use(prefix+'/report',require('./routes/report/report'))
+
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // หรือกำหนด origin ที่เฉพาะเจาะจง

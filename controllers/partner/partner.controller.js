@@ -61,7 +61,7 @@ module.exports.add = async (req, res) => {
         bank:{
             accountname:req.body.bank.accountname,  //(ชื่อบัญชี)
             accountnumber: req.body.bank.accountnumber, //(เลขบัญชี) 
-            namebank: req.body.bank.namebank, //(ชื่อธนาคาร)
+            name: req.body.bank.name, //(ชื่อธนาคาร)
             branch: req.body.bank.branch,  //(สาขา) 
             imgbank: "" //(รูปภาพบัญชี)
         },
@@ -169,7 +169,7 @@ module.exports.edit = async (req, res) => {
         bank:{
             accountname:req.body.bank.accountname,  //(ชื่อบัญชี)
             accountnumber: req.body.bank.accountnumber, //(เลขบัญชี) 
-	          namebank: req.body.bank.namebank, //(ชื่อธนาคาร)
+	          name: req.body.bank.name, //(ชื่อธนาคาร)
             branch: req.body.bank.branch,  //(สาขา) 
             imgbank: partner.bank.imgbank //(รูปภาพบัญชี)
         },

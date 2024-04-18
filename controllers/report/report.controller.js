@@ -6,8 +6,81 @@ const {Deliivery} = require('../../models/order/delivery.schema');
 const {Withdrawmoney} = require('../../models/withdrawmoney/withdrawmoney.schema');
 //สินค้า
 const {Product} = require('../../models/product/product.schema');
+//partner
+const {Partner} = require('../../models/partner/partner.schema');
+//customer
+const {Customer} = require('../../models/customer/customer.schema');
+
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+
+
+
+//dashboard admin
+module.exports.dashboardadmin = async (req, res) => {
+    try{
+        const day = dayjs().format('YYYY-MM-DD');
+        //ยอดขายประจำวัน
+        const totalday = await Deliivery.aggregate([
+            {
+                $match: {
+                    updatedAt: {
+                        $gte: new Date(day + "T00:00:00.000Z"),
+                        $lt: new Date(day + "T23:59:59.999Z")
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: "$totalproduct" }
+                }
+            }
+        ]);
+        //ออเดอร์ประจำวัน
+        const totalorderday = await Deliivery.countDocuments({
+            createdAt: {
+                $gte: new Date(day + "T00:00:00.000Z"),
+                $lt: new Date(day + "T23:59:59.999Z")
+            }
+        });
+        // จำนวน partner ทั้งหมด
+        const totalpartner = await Partner.countDocuments({});
+
+        // จำนวน customer ทั้งหมด
+        const totalcustomer = await Customer.countDocuments({});
+
+        //ยอดขายย้อนหลัง 12 เดือนแบ่งเป็นเดือน
+        const startDate = dayjs().subtract(12, 'month').startOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS') + "Z";
+        const endDate = dayjs().endOf('month').format('YYYY-MM-DDTHH:mm:ss.SSS') + "Z";
+        const totalmonth = await Deliivery.aggregate([
+            {
+                $match: {
+                    status: "ได้รับสินค้าแล้ว",
+                    updatedAt: {
+                        $gte: new Date(startDate),
+                        $lt: new Date(endDate)
+                    }
+                  
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: { format: "%Y-%m-01", date: "$updatedAt" }
+                    },
+                    total: { $sum: "$totalproduct" }
+                }
+            }
+        ]);
+        return res.status(200).send({ status: true, message: "dashboard" ,totalday: totalday[0] ? totalday[0].total : 0, totalorderday: totalorderday, totalpartner: totalpartner, totalcustomer: totalcustomer, totalmonth: totalmonth})
+
+    }catch(err){
+        return res.status(500).send({ status: false, message: err.message })
+    }
+
+}
+
 
 // dashboard พาร์ทเนอร์
 module.exports.dashboardpartner = async (req, res) => {

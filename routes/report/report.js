@@ -3,6 +3,9 @@ const router = express.Router();
 const report = require("../../controllers/report/report.controller")
 const userAuth = require('../../authentication/userAuth')
 
+//dashboard admin
+router.get('/dashboardadmin/',userAuth.admin,report.dashboardadmin);
+
 //dashboard partner
 router.get('/dashboardpartner/:id',userAuth.partner,report.dashboardpartner);
 

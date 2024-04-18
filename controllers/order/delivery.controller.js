@@ -480,7 +480,6 @@ module.exports.getbypartnerall = async (req, res) => {
 }
 
 //ดึงข้อมูลที่มี partner_name เท่ากับ บริษัท มารวยด้วยกัน จำกัด
-
 module.exports.getbymarueyall = async (req, res) => {
     try{
         //partner_name เท่ากับ บริษัท มารวยด้วยกัน จำกัด

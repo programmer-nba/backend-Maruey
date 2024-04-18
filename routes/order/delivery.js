@@ -23,6 +23,13 @@ router.get('/bypartnerall/',userAuth.all,delivery.getbypartnerall);
 router.get('/bypartnernamemaruey/',userAuth.all,delivery.getbymarueyall);
 //จัดส่งสินค้าให้ลูกค้าแล้ว
 router.put('/sendproduct/:id',userAuth.all,delivery.sendproduct);
+
+
+//สินค้าโดนตีกลับ
+router.put('/productreturn/:id',delivery.productreturn);
+//ไรเดอร์มาส่งของแล้ว
+router.put('/riderdelivery/:id',delivery.riderdelivery);
+
 //ลูกค้ารับสินค้าแล้ว
 router.put('/receiveproduct/:id',userAuth.all,delivery.getproduct);
 

@@ -62,7 +62,7 @@ module.exports.sendproduct = async (req, res) => {
         //เปลี่ยนสถานะเป็น "จัดส่งสินค้า"
         delivery.status = "จัดส่งสินค้า"
         //เพิ่มข้อมูลลง detail
-        delivery.detail.push({ status: "จัดส่งสินค้า", date: Date.now() })
+        delivery.detail.push({ status: "จัดส่งสินค้า" ,date: Date.now()})
         //save
         const add = await delivery.save()
       
@@ -72,6 +72,53 @@ module.exports.sendproduct = async (req, res) => {
         return res.status(500).send({ status: false, message: err.message })
     }
 }
+
+//สินค้าโดนตีกลับ
+module.exports.productreturn = async (req, res) => {
+    try{
+        const deliivery = await Deliivery.findOne({ _id: req.params.id })
+        if(deliivery == null) 
+        {
+            return res.status(400).send({ status: false, message: "ไม่พบข้อมูล" })
+        }
+        
+        if(deliivery.status != "จัดส่งสินค้า") 
+        {
+            return res.status(400).send({ status: false, message: "สถานะไม่ถูกต้อง" })
+        }
+        deliivery.status = "ตีกลับสินค้า"
+        deliivery.detail.push({ status: "ตีกลับสินค้า" ,date: Date.now()})
+        const add = await deliivery.save()
+        return res.status(200).send({ status: true, message: "ตีกลับสินค้าสำเร็จ", data: add })
+        
+
+    }catch(err){
+        return res.status(500).send({ status: false, message: err.message })
+    }
+}
+//ไรเดอร์มาส่งของแล้ว
+module.exports.riderdelivery = async (req, res) => {
+    try{
+        const deliivery = await Deliivery.findOne({ _id: req.params.id })
+        if(deliivery == null) 
+        {
+            return res.status(400).send({ status: false, message: "ไม่พบข้อมูล" })
+        }
+        
+        if(deliivery.status != "จัดส่งสินค้า") 
+        {
+            return res.status(400).send({ status: false, message: "สถานะไม่ถูกต้อง" })
+        }
+        deliivery.status = "ส่งสินค้าแล้ว"
+        deliivery.detail.push({ status: "ส่งสินค้าแล้ว",date: Date.now()})
+        const add = await deliivery.save()
+        return res.status(200).send({ status: true, message: "ส่งสินค้าสำเร็จ", data: add })
+
+    }catch(err){
+        return res.status(500).send({ status: false, message: err.message })    
+    }
+}
+
 
 //ลูกค้ากดรับสินค้าแล้ว
 module.exports.getproduct = async (req, res) => {

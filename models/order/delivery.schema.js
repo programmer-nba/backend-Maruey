@@ -47,7 +47,7 @@ const deliiveryschema = new mongoose.Schema(
         totalproduct:{type:Number,default:0}, //(ราคารวมสินค้า)
         delivery:{type:Number,default:0}, // (ค่าขนส่ง)
         alltotal:{type:Number,default:0}, //(ราคารวม)
-        status:{type:String,default:""}, // “กำลังเตรียมจัดส่ง” , “จัดส่งสินค้า” , “ได้รับสินค้าแล้ว” ,” ตีกลับสินค้า”
+        status:{type:String,default:""}, // “กำลังเตรียมจัดส่ง” , “จัดส่งสินค้า” ,"ส่งสินค้าแล้ว" , “ได้รับสินค้าแล้ว” ,” ตีกลับสินค้า”
         detail : {type:[{
             status : {type:String,default:""}, // สถานะ
             date : {type:Date,default:Date.now()}, // วันที่

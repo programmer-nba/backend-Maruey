@@ -79,12 +79,15 @@ app.use(prefix+'/withdrawmoney',require('./routes/withdrawmoney/withdrawmoney'))
 //report
 app.use(prefix+'/report',require('./routes/report/report'))
 
+//report สินค้าตีกลับ
+app.use(prefix+'/reportreturnproduct',require('./routes/report/reportreturnproduct'))
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // หรือกำหนด origin ที่เฉพาะเจาะจง
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     next();
 });
+
 
 
 async function doSomething() {

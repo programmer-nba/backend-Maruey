@@ -127,7 +127,7 @@ module.exports.getproduct = async (req, res) => {
         const delivery = await Deliivery.findOne({ _id: req.params.id })
         if(delivery == null) return res.status(400).send({ status: false, message: "ไม่พบข้อมูล" })
         //เช็คว่ายังเป็นสถานะ "จัดส่งสินค้า"
-        if(delivery.status != "จัดส่งสินค้า") return res.status(400).send({ status: false, message: "สินค้ายังไม่ถึง" })
+        if(delivery.status != "จัดส่งสินค้า" && delivery.status !="ส่งสินค้าแล้ว") return res.status(400).send({ status: false, message: "ระบบยังไม่ถึงขั้นตอนนี้" })
         //เปลี่ยนสถานะเป็น "ได้รับสินค้าแล้ว"
         delivery.status = "ได้รับสินค้าแล้ว"
         //เพิ่มข้อมูลลง detail

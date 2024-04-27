@@ -11,7 +11,11 @@ const {Partner} = require('../../models/partner/partner.schema');
 //customer
 const {Customer} = require('../../models/customer/customer.schema');
 
+
+
 const mongoose = require('mongoose');
+const e = require('express');
+const { date } = require('joi');
 const ObjectId = mongoose.Types.ObjectId;
 
 
@@ -162,6 +166,7 @@ module.exports.reportprofitandloss = async (req, res) => {
     try{
         //รับ id day month year
         const id = req.body.id;
+       
         if(id =="day")
         {
             
@@ -331,6 +336,249 @@ module.exports.reportprofitandloss = async (req, res) => {
 
 
         }else{
+            return res.status(400).send({ status: false, message: "id is required" })
+        }
+    }catch(err){
+        return res.status(500).send({ status: false, message: err.message })
+    }
+}
+
+
+//สรุปยอดขายสินค้าของพาร์ทเนอร์ แต่ละไอดี ประจำวัน / เดือน / ปี
+module.exports.reportpricepartner = async (req, res) => {
+    try{
+        //รับ id day month year
+        const id = req.body.id;
+        const partner = await Partner.find({});
+        partner.push({ _id: null, company_name: "บริษัท มารวยด้วยกัน จำกัด" });
+
+        if(id =="day")
+        {
+        
+            //ดึงข้อมูลรายรับ มารวมเป็นแต่ละpartner ในแต่ละวัน
+            const price = await Deliivery.aggregate([
+                {
+                    $unwind: "$detail"
+                },
+                {
+                        $match: {
+                            "detail.status": "ได้รับสินค้าแล้ว",
+                            "detail.date": {
+                                $gte: new Date(dayjs().format('YYYY-MM-DD') + "T00:00:00.000Z"),
+                                $lt: new Date(dayjs().format('YYYY-MM-DD') + "T23:59:59.999Z")
+                            }
+                        }
+                },
+                {
+                    $group: {
+                        _id: "$partner_id",
+                        name: { $first: "$partner_name" },
+                        total: { $sum: "$totalproduct" }
+                    }
+                }
+            ]);
+            //นำข้อมูลมารวมกัน
+        
+              const data = partner.map((item) => {
+                    const find = price.findIndex((item2) => JSON.parse(JSON.stringify(item2._id))  ==  JSON.parse(JSON.stringify(item._id)));
+                    
+
+                    if(find != -1)
+                    {
+                        
+                        return{
+                            _id: item._id,
+                            name: item.company_name,
+                            date: dayjs().format('YYYY-MM-DD'),
+                            total: price[find].total
+                        }
+                    }else{
+                        return{
+                            _id: item._id,
+                            name: item.company_name,
+                            date: dayjs().format('YYYY-MM-DD'),
+                            total: 0
+                        }
+                    }
+              });
+
+              
+
+              return res.status(200).send({ status: true, message: "report", data: data})
+        
+        }else if(id =="month")
+        {
+            //ดึงข้อมูลรายรับ มารวมเป็นแต่ละpartner ในแต่ละเดือน
+            const price = await Deliivery.aggregate([
+                {
+                    $unwind: "$detail"
+                },
+                {
+                        $match: {
+                            "detail.status": "ได้รับสินค้าแล้ว",
+                            "detail.date": {
+                                $gte: new Date(dayjs().startOf('month').format('YYYY-MM-DD') + "T00:00:00.000Z"),
+                                $lt: new Date(dayjs().endOf('month').format('YYYY-MM-DD') + "T23:59:59.999Z")
+                            }
+                        }
+                },
+                {
+                    $group: {
+                        _id: "$partner_id",
+                        name: { $first: "$partner_name" },
+                        total: { $sum: "$totalproduct" }
+                    }
+                }
+            ]);
+            //นำข้อมูลมารวมกัน
+            const data = partner.map((item) => {
+                const find = price.findIndex((item2) => JSON.parse(JSON.stringify(item2._id))  ==  JSON.parse(JSON.stringify(item._id)));
+                if(find != -1)
+                {
+                    return{
+                        _id: item._id,
+                        name: item.company_name,
+                        date: dayjs().format('YYYY-MM'),
+                        total: price[find].total
+                    }
+                }else{
+                    return{
+                        _id: item._id,
+                        name: item.company_name,
+                        date: dayjs().format('YYYY-MM'),
+                        total: 0
+                    }
+                }
+            });
+            return res.status(200).send({ status: true, message: "report", data: data})
+
+        }else if(id =="year"){
+            //ดึงข้อมูลรายรับ มารวมเป็นแต่ละpartner ในแต่ละปี
+            const price = await Deliivery.aggregate([
+                {
+                    $unwind: "$detail"
+                },
+                {
+                        $match: {
+                            "detail.status": "ได้รับสินค้าแล้ว",
+                            "detail.date": {
+                                $gte: new Date(dayjs().startOf('year').format('YYYY-MM-DD') + "T00:00:00.000Z"),
+                                $lt: new Date(dayjs().endOf('year').format('YYYY-MM-DD') + "T23:59:59.999Z")
+                            }
+                        }
+                },
+                {
+                    $group: {
+                        _id: "$partner_id",
+                        name: { $first: "$partner_name" },
+                        total: { $sum: "$totalproduct" }
+                    }
+                }
+            ]);
+            //นำข้อมูลมารวมกัน
+            const data = partner.map((item) => {
+                const find = price.findIndex((item2) => JSON.parse(JSON.stringify(item2._id))  ==  JSON.parse(JSON.stringify(item._id)));
+                if(find != -1)
+                {
+                    return{
+                        _id: item._id,
+                        name: item.company_name,
+                        date: dayjs().format('YYYY'),
+                        total: price[find].total
+                    }
+                }else{
+                    return{
+                        _id: item._id,
+                        name: item.company_name,
+                        date: dayjs().format('YYYY'),
+                        total: 0
+                    }
+                }
+            });
+            return res.status(200).send({ status: true, message: "report", data: data})
+
+        }else{
+            return res.status(400).send({ status: false, message: "id is required" })
+        }
+    }catch(err){
+        return res.status(500).send({ status: false, message: err.message })
+    }
+}
+//สรุปยอดขายสินค้าของพาร์ทเนอร์ ของตัวเอง  ประจำวัน / เดือน / ปี
+module.exports.reportpricepartnerbyid = async (req, res) => {
+    try{
+        const id = req.body.id;
+        const partner_id = req.body.partner_id;
+        if(id =="day")
+        {
+            //ดึงข้อมูลรายรับ มารวมเป็นในแต่ละวัน
+            const price = await Deliivery.aggregate([
+                {
+                    $unwind: "$detail"
+                },
+                {
+                        $match: {
+                            "detail.status": "ได้รับสินค้าแล้ว",
+                       
+                            "partner_id": partner_id
+                        }
+                },
+                {
+                    $group: {
+                        _id: {$dateToString: { format: "%Y-%m-%dT00:00:00.000Z", date: "$updatedAt" }},
+                        name: { $first: "$partner_name" },
+                        total: { $sum: "$totalproduct" }
+                    }
+                }
+            ]);
+            return res.status(200).send({ status: true, message: "report", data: price})
+        }else if(id =="month")
+        {
+            //ดึงข้อมูลรายรับ มารวมเป็นในแต่ละเดือน
+            const price = await Deliivery.aggregate([
+                {
+                    $unwind: "$detail"
+                },
+                {
+                        $match: {
+                            "detail.status": "ได้รับสินค้าแล้ว",
+                            "partner_id": partner_id
+                        }
+                },
+                {
+                    $group: {
+                        _id: {$dateToString: { format: "%Y-%m-01", date: "$updatedAt" }},
+                        name: { $first: "$partner_name" },
+                        total: { $sum: "$totalproduct" }
+                    }
+                }
+            ]);
+            return res.status(200).send({ status: true, message: "report", data: price})
+        }
+        else if(id =="year")
+        {
+            //ดึงข้อมูลรายรับ มารวมเป็นในแต่ละปี
+            const price = await Deliivery.aggregate([
+                {
+                    $unwind: "$detail"
+                },
+                {
+                        $match: {
+                            "detail.status": "ได้รับสินค้าแล้ว",
+                            "partner_id": partner_id
+                        }
+                },
+                {
+                    $group: {
+                        _id: {$dateToString: { format: "%Y-01-01", date: "$updatedAt" }},
+                        name: { $first: "$partner_name" },
+                        total: { $sum: "$totalproduct" }
+                    }
+                }
+            ]);
+            return res.status(200).send({ status: true, message: "report", data: price})
+        }
+        else{
             return res.status(400).send({ status: false, message: "id is required" })
         }
     }catch(err){

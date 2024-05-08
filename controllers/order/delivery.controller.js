@@ -3,6 +3,7 @@ const {Percentprofit} = require("../../models/percentprofit/percentprofit.schema
 const {Shareincome} = require("../../models/shareincome/shareincome.schema");
 const {Customer} = require("../../models/customer/customer.schema");
 const {Order} = require("../../models/order/order.schema");
+const {Partner} = require("../../models/partner/partner.schema");
 
 module.exports.get = async (req, res) => {
     try{
@@ -195,6 +196,8 @@ module.exports.getproduct = async (req, res) => {
                 partner_id:delivery.partner_id,
                 money:partner
             }
+            const addmoney = await Partner.findByIdAndUpdate(delivery.partner_id,{$inc:{income:partner}})
+          
         }
        
        
@@ -213,7 +216,7 @@ module.exports.getproduct = async (req, res) => {
         })
 
 
-
+        //ลูกค้า
         if(codeshareproduct ==  "")
         {
             //ถ้าไม่มีคนแชร์ลิงค์ ให้เพิ่มเข้าไปใน maruey
@@ -237,6 +240,7 @@ module.exports.getproduct = async (req, res) => {
             }
             
         }
+       
         
         let objectlevelone 
         let objectleveltwo 

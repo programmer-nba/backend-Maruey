@@ -14,8 +14,6 @@ const {Customer} = require('../../models/customer/customer.schema');
 
 
 const mongoose = require('mongoose');
-const e = require('express');
-const { date } = require('joi');
 const ObjectId = mongoose.Types.ObjectId;
 
 
@@ -508,7 +506,7 @@ module.exports.reportpricepartner = async (req, res) => {
 module.exports.reportpricepartnerbyid = async (req, res) => {
     try{
         const id = req.body.id;
-        const partner_id = req.body.partner_id;
+        const partner_id = new ObjectId(req.body.partner_id);
         if(id =="day")
         {
             //ดึงข้อมูลรายรับ มารวมเป็นในแต่ละวัน
@@ -519,7 +517,6 @@ module.exports.reportpricepartnerbyid = async (req, res) => {
                 {
                         $match: {
                             "detail.status": "ได้รับสินค้าแล้ว",
-                       
                             "partner_id": partner_id
                         }
                 },

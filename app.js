@@ -82,6 +82,12 @@ app.use(prefix+'/report',require('./routes/report/report'))
 //report สินค้าตีกลับ
 app.use(prefix+'/reportreturnproduct',require('./routes/report/reportreturnproduct'))
 
+// otp 
+app.use(prefix+'/otp',require('./routes/otp/otp'))
+
+
+
+
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // หรือกำหนด origin ที่เฉพาะเจาะจง
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');

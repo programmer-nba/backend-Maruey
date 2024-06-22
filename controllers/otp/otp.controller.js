@@ -29,7 +29,7 @@ module.exports.sendotp = async (req, res) => {
 }
 
 module.exports.verifyotp = async (req, res) => {
-    try{
+    try{ 
 
         const {token,otp_code} = req.body;
         const config = {
@@ -56,7 +56,6 @@ module.exports.verifyotp = async (req, res) => {
         }
     }catch(error)
     {
-        console.log(error);
         return res.status(500).send({status:false,error:error.message});
     }
 }

@@ -6,11 +6,21 @@ const {
   deleteFile,
 } = require("../functions/uploadfilecreate");
 
+const testtoken = require("../authentication/test");
+
+
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/', async (req, res) => {
+  const token = await testtoken.gettoken();
+  console.log(token)
   res.render('index', { title: 'Express' });
 });
 
+router.get('/newtoken', async (req, res) => {
+  const token = await testtoken.newtoken();
+  console.log(token)
+  res.render('index', { title: 'Express' });
+});
 
 
 router.put('/deleteimage/',async(req,res)=>{

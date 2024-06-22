@@ -11,6 +11,10 @@ const axios = require('axios');
 
 process.env.TZ='UTC'
 var app = express();
+//ตัวแปรเก็บข้อมูล
+
+
+
 //เชื่ิอมdatabase
 const urldatabase =process.env.ATLAS_MONGODB
 mongoose.Promise = global.Promise

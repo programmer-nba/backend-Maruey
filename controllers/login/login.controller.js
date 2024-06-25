@@ -18,9 +18,9 @@ module.exports.login = async (req, res) => {
         const password = req.body.password
         
         //เช็คว่า user นี้มีในระบบไหม
-        const admin = await Admin.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone }]})
-        const partner = await Partner.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone }]})
-        const customer = await Customer.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone }]})
+        const admin = await Admin.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone },{ username: emailandtelephone }]})
+        const partner = await Partner.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone },{ username: emailandtelephone}]})
+        const customer = await Customer.findOne({$or: [{ email: emailandtelephone },{ telephone: emailandtelephone },{ username: emailandtelephone }]})
 
         let bcryptpassword
        
@@ -31,6 +31,7 @@ module.exports.login = async (req, res) => {
             {
                 const payload = {
                     _id:admin._id,
+                    username:admin.username,
                     email:admin.email,
                     telephone:admin.telephone,
                     name : admin.name,
@@ -50,6 +51,7 @@ module.exports.login = async (req, res) => {
             {
                 const payload = {
                     _id:partner._id,
+                    username:partner.username,
                     email:partner.email,
                     telephone:partner.telephone,
                     name : partner.name,
@@ -70,6 +72,7 @@ module.exports.login = async (req, res) => {
             {
                 const payload = {
                     _id:customer._id,
+                    username:customer.username,
                     email:customer.email,
                     telephone:customer.telephone,
                     name : customer.name,
@@ -107,14 +110,15 @@ module.exports.getme = async (req,res) =>{
             // ทำการยืนยันสิทธิ์ token
             const decodded =jwt.verify(token,secretKey)
             const dataResponse ={
-            _id:decodded._id,
-            email:decodded.email,
-            telephone:decodded.telephone,
-            name:decodded.name,
-            row:decodded.row,
-            position:decodded.position
+                _id:decodded._id,
+                username:decodded.username,
+                email:decodded.email,
+                telephone:decodded.telephone,
+                name:decodded.name,
+                row:decodded.row,
+                position:decodded.position
             }
-        return res.status(200).send({status:true,data:dataResponse});
+            return res.status(200).send({status:true,data:dataResponse});
         }else{
             return res.status(403).send({status:false,message:'token ไม่ถูกต้องตามรบบ '})
         }

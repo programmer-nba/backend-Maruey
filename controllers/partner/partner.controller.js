@@ -25,6 +25,12 @@ module.exports.add = async (req, res) => {
         return res.status(400).send({ message: error.details[0].message, status: false });
       }
 
+      //เช็คusername ซ้ำ
+      const checkusername = await Checkalluse.CheckUsername(req.body.username);
+      if (checkusername == true) {
+        return res.status(409).send({ status: false, message: "username นี้มีคนใช้แล้ว" });
+      }
+
       //เช็คอีเมล์ซ้ำ
       const checkemail = await Checkalluse.CheckEmail(req.body.email);
       if (checkemail == true) {
@@ -46,6 +52,7 @@ module.exports.add = async (req, res) => {
 
 
       const data = new Partner({
+        username: req.body.username,
         email: req.body.email,
         telephone: req.body.telephone,
         password: bcrypt.hashSync(req.body.password, 10),
@@ -130,7 +137,14 @@ module.exports.edit = async (req, res) => {
     if(error.status == false){
       return res.status(400).send({ message: error.details[0].message, status: false });
     }
-
+      //เช็ค username ซ้ำ
+      if(partner.username != req.body.username)
+        {
+          const checkusername = await Checkalluse.CheckUsername(req.body.username);
+          if (checkusername == true) {
+            return res.status(409).send({ status: false, message: "username นี้มีคนใช้แล้ว" });
+          }
+        }
 
       if(partner.email != req.body.email)
       {

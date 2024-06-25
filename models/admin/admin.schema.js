@@ -3,6 +3,8 @@ const Joi = require("joi");
 // Define the schema for the HotelUser entity
 const AdminSchema = new mongoose.Schema(
   {
+    // เพิ่มมาใหม่
+    username:{type:String,require:true,unique: true},
     email:{type:String,require:true,unique: true},
     telephone:{type:String,require:true,unique:true},
     password: {type: String, required: true},
@@ -17,6 +19,7 @@ const Admin = mongoose.model("admin", AdminSchema);
 
 const validateadmin = (data) => {
   const schema = Joi.object({
+    username:Joi.string().required().label("กรุณากรอกชื่อผู้ใช้"),
     email:Joi.string().required().label("กรุณากรอกอีเมล์"),
     telephone:Joi.string().required().label("กรุณากรอกเบอร์โทรศัพท์"),
     password: Joi.string().required().label("กรุณากรอกpassword"),

@@ -4,6 +4,17 @@ const {Partner} = require('../models/partner/partner.schema')
 const {Customer} = require('../models/customer/customer.schema')
 //สร้าง function เช็คชื่อซ้ำ2 ตาราง
 
+//เช็ค username ซ้ำ
+async function CheckUsername(username){
+    const checkAdmin = await Admin.findOne({username:username})
+    if(checkAdmin) return true
+    const checkPartner = await Partner.findOne({username:username})
+    if(checkPartner) return true
+    const checkCustomer = await Customer.findOne({username:username})
+    if(checkCustomer) return true
+    return false
+}
+
 async function CheckEmail(email){
     const checkAdmin = await Admin.findOne({email:email})
     if(checkAdmin) return true
@@ -36,6 +47,6 @@ async function CheckRecommendedcode(recommendedcode){
 
 
 const Checkalluse = {
-    CheckEmail, CheckTelephone
+    CheckEmail, CheckTelephone,CheckUsername
 };
 module.exports = Checkalluse

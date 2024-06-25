@@ -3,6 +3,8 @@ const Joi = require("joi");
 
 const PartnerSchema = new mongoose.Schema(
   {
+    // เพิ่มมาใหม่
+    username:{type:String,require:true,unique: true},
     email:{type:String,require:true,unique: true},
     telephone:{type:String,require:true,unique:true},
     password: {type: String, required: true},
@@ -48,6 +50,7 @@ const Partner = mongoose.model("partner", PartnerSchema);
 
 const validatepartner = (data) => {
   const schema = Joi.object({
+    username:Joi.string().required().label("กรุณากรอกชื่อผู้ใช้"),
     email:Joi.string().required().label("กรุณากรอกอีเมล์"),
     telephone:Joi.string().required().label("กรุณากรอกเบอร์โทรศัพท์"),
     password: Joi.string().required().label("กรุณากรอกpassword"),

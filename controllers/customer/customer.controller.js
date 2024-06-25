@@ -26,6 +26,12 @@ module.exports.register = async (req, res) => {
     const { error } = validatecustomer(req.body);
     if (error) return res.status(400).json({ status:false,message: error.details[0].message });
 
+
+      //เช็ค username ซ้ำ
+      const checkusername = await Checkalluse.CheckUsername(req.body.username);
+      if (checkusername == true) {
+        return res.status(409).send({ status: false, message: "ชื่อผู้ใช้ นี้มีคนใช้แล้ว" });
+      }
      //เช็คอีเมล์ซ้ำ
      const checkemail = await Checkalluse.CheckEmail(req.body.email);
      if (checkemail == true) {
@@ -93,6 +99,7 @@ module.exports.register = async (req, res) => {
      }
 
      const data = new Customer({
+      username: req.body.username,
       email: req.body.email,
       telephone: req.body.telephone,
       password: bcrypt.hashSync(req.body.password, 10),
@@ -136,7 +143,33 @@ module.exports.edit = async (req, res) => {
   try{
     const customer = await Customer.findById(req.params.id)
     if (!customer) return res.status(404).json({ status:false,message: "ไม่พบข้อมูล"});
+    //เช็ค username ซ้ำ
+    if(req.body.username != customer.username)
+    {
+        const checkusername = await Checkalluse.CheckUsername(req.body.username);
+        if (checkusername == true) {
+          return res.status(409).send({ status: false, message: "ชื่อผู้ใช้ นี้มีคนใช้แล้ว" });
+        }
+    }
+    //เช็ค email ซ้ำ
+    if(req.body.email != customer.email)
+    {
+        const checkemail = await Checkalluse.CheckEmail(req.body.email);
+        if (checkemail == true) {
+          return res.status(409).send({ status: false, message: "email นี้มีคนใช้แล้ว" });
+        }
+    }
+    //เช็ค telephone ซ้ำ
+    if(req.body.telephone != customer.telephone)
+    {
+        const checktelephone = await Checkalluse.CheckTelephone(req.body.telephone);
+        if (checktelephone == true) {
+          return res.status(409).send({ status: false, message: "เบอร์โทรศัพท์ นี้มีคนใช้แล้ว" });
+        }
+    }
+
     const data ={
+      username: req.body.username,
       email: req.body.email,
       telephone: req.body.telephone,
       password:(req.body.password !=undefined && req.body.password!=''? bcrypt.hashSync(req.body.password, 10):customer.password),

@@ -43,7 +43,11 @@ module.exports.add = async (req, res) => {
       if(error.status == false){
         return res.status(400).send({ message: error.details[0].message, status: false });
       }
-
+      //เช็ค username ซ้ำ
+      const checkusername = await Checkalluse.CheckUsername(req.body.username);
+      if (checkusername == true) {
+        return res.status(409).send({ status: false, message: "ชื่อผู้ใช้ นี้มีคนใช้แล้ว" });
+      }
       //เช็คอีเมล์ซ้ำ
       const checkemail = await Checkalluse.CheckEmail(req.body.email);
       if (checkemail == true) {
@@ -57,6 +61,7 @@ module.exports.add = async (req, res) => {
       }
 
       const data = new Admin({
+        username: req.body.username,
         email: req.body.email,
         telephone: req.body.telephone,
         password: bcrypt.hashSync(req.body.password, 10),
@@ -144,6 +149,15 @@ module.exports.edit = async (req, res) => {
         //ไฟล์รูป
         image = reqFiles[0]
       }
+      //เช็ค username ซ้ำ
+      if(admin.username != req.body.username)
+      {
+        const checkusername = await Checkalluse.CheckUsername(req.body.username);
+        if (checkusername == true) {
+          return res.status(409).send({ status: false, message: "ชื่อผู้ใช้ นี้มีคนใช้แล้ว" });
+        }
+      }
+
       if(admin.email != req.body.email)
       {
         const checkemail = await Checkalluse.CheckEmail(req.body.email);
@@ -161,6 +175,7 @@ module.exports.edit = async (req, res) => {
       }
           
       const data = {
+        username: req.body.username,
         email: req.body.email,
         telephone: req.body.telephone,
         password:  (req.body.password !=undefined && req.body.password!=''? bcrypt.hashSync(req.body.password, 10):admin.password), // ถ้าไม่ได้มีการส่ง password มาให้ทำการ ใช้ password เดิม

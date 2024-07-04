@@ -172,6 +172,7 @@ module.exports.edit = async (req, res) => {
       }
   
       const data = {
+        username: req.body.username,
         email: req.body.email,
         telephone: req.body.telephone,
         password:  (req.body.password !=undefined && req.body.password!=''? bcrypt.hashSync(req.body.password, 10):Partner.password), // ถ้าไม่ได้มีการส่ง password มาให้ทำการ ใช้ password เดิม

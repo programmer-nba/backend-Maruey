@@ -133,6 +133,8 @@ module.exports.edit = async (req, res) => {
             if(!check){
                 return res.status(400).json({message:"ไม่พบข้อมูลสินค้า",status:false});
             }
+
+            //const ispending = check.product_price !== req.body.product_price ? true : false
             
             const edit = await Product.findByIdAndUpdate(req.params.id,{
                 product_name:req.body.product_name,
@@ -149,6 +151,7 @@ module.exports.edit = async (req, res) => {
                 product_partner_id: (req.body.product_partner_id == undefined || req.body.product_partner_id == '') ? null : req.body.product_partner_id,
                 product_detail:req.body.product_detail,
                 product_stock:req.body.product_stock,
+                pending: true
             },{new:true});
 
             if(edit){
@@ -177,6 +180,29 @@ module.exports.delete = async (req, res) => {
         }
     }catch(error){
         return res.status(500).json({message:error.message, status: false});
+    }
+}
+
+module.exports.approveEdited = async (req, res) => {
+    try {
+        const { id } = req.params
+        const product = await Product.findByIdAndUpdate(id, {
+            $set: {
+                pending: false
+            }
+        }, { new: true })
+        if (!product) {
+            return res.status(404).json({ message: "not found" })
+        }
+
+        return res.status(201).json({
+            message: "อนุมัติสินค้าสำเร็จ",
+            status: true
+        })
+    }
+    catch(err) {
+        console.log(err)
+        return res.status(500).json({message:error.message, status: false})
     }
 }
 

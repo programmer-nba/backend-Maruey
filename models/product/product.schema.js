@@ -22,6 +22,7 @@ const ProductSchema = new mongoose.Schema(
     product_image:{type:String,default:""}, //รูปภาพสินค้า
     product_status :{type:Boolean,default:true}, //สถานะสินค้า (true: เปิดขาย , false: ปิดขาย)
     rating:{type:Number,default:0}, //(จำนวนดาว)
+    pending: { type: Boolean, default: false }
   },
   {timestamps: true}
 );

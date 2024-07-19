@@ -7,15 +7,31 @@ const cor = require('cors')
 require('dotenv').config()
 const mongoose = require('mongoose')
 const axios = require('axios');
+const mysql = require('mysql')
 
 
 process.env.TZ='UTC'
 var app = express();
 //ตัวแปรเก็บข้อมูล
 
+// MySQL connection
+const db = mysql.createConnection({
+    host: process.env.MYSQL_HOST || 'localhost',
+    user: process.env.MYSQL_USER || 'zgolf4_mlm_dev',
+    password: process.env.MYSQL_PASSWORD || '5ahQDXdYkxRunuWn4anX',
+    database: process.env.MYSQL_DATABASE || 'zgolf4_mlm'
+});
 
+// Connect to MySQL
+/* db.connect((err) => {
+    if (err) {
+        console.error('MySQL connection error:', err.stack);
+        process.exit(1); // Exit the process with a failure code
+    }
+    console.log('MySQL Connected...');
+}); */
 
-//เชื่ิอมdatabase
+//เชื่อมdatabase
 const urldatabase =process.env.ATLAS_MONGODB
 mongoose.Promise = global.Promise
 mongoose.connect(urldatabase).then(()=>console.log("connect")).catch((err)=>console.error(err))
@@ -110,7 +126,6 @@ async function doSomething() {
         console.error('Error:', error);
     }
 }
-
 
 const port = process.env.PORT || 5713;
 app.listen(port,()=>{

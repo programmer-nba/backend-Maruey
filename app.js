@@ -15,7 +15,7 @@ var app = express();
 //ตัวแปรเก็บข้อมูล
 
 // MySQL connection
-const db = mysql.createConnection({
+/*const db = mysql.createConnection({
     host: process.env.MYSQL_HOST || 'localhost',
     user: process.env.MYSQL_USER || 'zgolf4_mlm_dev',
     password: process.env.MYSQL_PASSWORD || '5ahQDXdYkxRunuWn4anX',
@@ -23,13 +23,13 @@ const db = mysql.createConnection({
 });
 
 // Connect to MySQL
-/* db.connect((err) => {
+db.connect((err) => {
     if (err) {
         console.error('MySQL connection error:', err.stack);
         process.exit(1); // Exit the process with a failure code
     }
     console.log('MySQL Connected...');
-}); */
+});*/
 
 //เชื่อมdatabase
 const urldatabase =process.env.ATLAS_MONGODB

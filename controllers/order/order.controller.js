@@ -41,7 +41,7 @@ module.exports.add = async (req, res) => {
         const marueyinformation = await Information.findOne();
 
         const mapsuborder = suborder.map((element) => {
-            if(element.partner_id == null && element.partner_name =='บริษัท มารวยด้วยกัน จำกัด')
+            if(!element.partner_id && element.partner_name =='บริษัท มารวยด้วยกัน จำกัด')
             {
                 return {
                     partner_id:element.partner_id,
@@ -56,13 +56,13 @@ module.exports.add = async (req, res) => {
                         zipcode:marueyinformation.zipcode,
                     },//(ที่อยู่ผู้ส่ง)
                     
-                    statusdetail:[{status:"กำลังดำเนินการออเดอร์",date:Date.now()}],
+                    statusdetail:[{status:"กำลังดำเนินการ",date:Date.now()}],
                     product:element.product,
                     totalproduct:element.totalproduct,
                     delivery:element.delivery,
                     alltotal:element.alltotal,
-                    delivery_type:"",
-                    delivery_id:null,
+                    delivery_type:element.delivery_type,
+                    delivery_id:element.delivery_id,
                     note:element.note,
                 }
             }
@@ -71,22 +71,22 @@ module.exports.add = async (req, res) => {
                     partner_id:element.partner_id,
                     partner_name:element.partner_name,
                     partneraddress :{
-                        namedelivery:element.partner_name,
-                        telephone:element.telephone,
-                        address:element.address.address,
-                        tambon:element.address.tambon,
-                        amphure:element.address.amphure,
-                        province:element.address.province,
-                        zipcode:element.address.zipcode,
+                        namedelivery:req.body.partner_name,
+                        telephone:req.body.telephone,
+                        address:req.body.address.address,
+                        tambon:req.body.address.tambon,
+                        amphure:req.body.address.amphure,
+                        province:req.body.address.province,
+                        zipcode:req.body.address.zipcode,
                     },//(ที่อยู่ผู้ส่ง)
-                    status:"กำลังดำเนินการออเดอร์",
-                    statusdetail:[{status:"กำลังดำเนินการออเดอร์",date:Date.now()}],
+                    status:"กำลังดำเนินการ",
+                    statusdetail:[{status:"กำลังดำเนินการ",date:Date.now()}],
                     product:element.product,
                     totalproduct:element.totalproduct,
                     delivery:element.delivery,
                     alltotal:element.alltotal,
-                    delivery_type:"",
-                    delivery_id:null,
+                    delivery_type:element.delivery_type,
+                    delivery_id:element.delivery_id,
                     note:element.note,
                 }
             }
@@ -97,7 +97,7 @@ module.exports.add = async (req, res) => {
             orderref: await runreferralcode(),
             customer_id:req.body.customer_id,
             address:req.body.address,
-            status:"กำลังดำเนินการออเดอร์",
+            status:"กำลังดำเนินการ",
             suborder:mapsuborder,
             total:req.body.total,
             totaldelivery:req.body.totaldelivery,
@@ -107,10 +107,7 @@ module.exports.add = async (req, res) => {
             payment:req.body.payment,
             payment_id:req.body.payment_id
        })
-
         const saveOrder = await addOrder.save()
-
-
         //สร้างใบจัดส่งสินค้า delivery ใหม่
         mapsuborder.forEach(async (element) => {
             const addDelivery = new Deliivery({
@@ -127,16 +124,15 @@ module.exports.add = async (req, res) => {
                 totalproduct:element.totalproduct,
                 delivery:element.delivery,
                 alltotal:element.alltotal,
-                status:"กำลังเตรียมจัดส่ง",
-                detail:[{status:"กำลังเตรียมจัดส่ง",date:Date.now()}],
+                status:"รอยืนยัน",
+                detail:[{status:"รอยืนยัน",date:Date.now()}],
                 note:element.note
             })
             const adds = await addDelivery.save()
             const order = await Order.findOne({_id:saveOrder._id})
             order.suborder.forEach(async (element2) => {
                 
-                if(JSON.parse(JSON.stringify(element2.partner_id)) == JSON.parse(JSON.stringify(element.partner_id)) )
-                {
+                if(element2.partner_id?.toString() == element.partner_id?.toString()) {
                     element2.delivery_id = adds._id
                     // element2.delivery_type = adds.delivery_type
                 }
@@ -147,6 +143,7 @@ module.exports.add = async (req, res) => {
         return res.status(200).send({status:true,message:"เพิ่มออเดอร์สำเร็จ",data:saveOrder})
 
     }catch(error){
+        console.log(error)
         return res.status(500).send({status:false,error:error.message});
     }
 }

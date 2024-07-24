@@ -11,6 +11,4 @@ router.get('/getme/',Login.getme)
 //gen token เอาไว้ใช้ด้านนอก
 router.post('/gentoken/',Login.gentoken)
 
-
-
 module.exports = router;

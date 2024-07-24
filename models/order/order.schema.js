@@ -38,7 +38,8 @@ const orderschema = new mongoose.Schema(
            
             product : {type:[
                 {
-                    product_id : {type: mongoose.Schema.Types.ObjectId,ref:'product',default:null},  //(รหัสสินค้า)
+                    //product_id : {type: mongoose.Schema.Types.ObjectId,ref:'product',default:null},  //(รหัสสินค้า)
+                    product_id: { type:String, default:"" },
                     product_name :{type:String,default:""}, //(ชื่อสินค้า)
                     product_image:{type:String,default:""}, //(รูปสินค้า)
                     product_price :{type:Number,default:0},//(ราคา)

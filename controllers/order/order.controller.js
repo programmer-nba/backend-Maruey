@@ -6,13 +6,13 @@ module.exports.add = async (req, res) => {
     try{
 
        //เช็คว่ามีข้อมูล customer หริอไม่
-        if(req.body.customer_id === undefined || req.body.customer_id ==='')
+        if(!req.body.customer_id)
         {
             return res.status(200).send({ status: false, message: "กรุณากรอก customer_id" })
         }
         //เช็คว่าของพอสั่งหรือเปล่า
        const suborder = req.body.suborder
-       suborder.forEach(async (element) => {
+       /* suborder.forEach(async (element) => {
          
             element.product.forEach(async (element2) => {
                 const product = await Product.findOne({_id:element2.product_id})
@@ -25,9 +25,9 @@ module.exports.add = async (req, res) => {
                 }
             })
     
-        })
+        }) */
        //ถ้าพอให้หักสต็อกสินค้าเลย
-         suborder.forEach(async (element) => {
+         /* suborder.forEach(async (element) => {
             element.product.forEach(async (element2) => {
                 const product = await Product.findOne({_id:element2.product_id})
                 if(product)
@@ -36,12 +36,12 @@ module.exports.add = async (req, res) => {
                     await product.save()
                 }
             })
-        })
+        }) */
 
         const marueyinformation = await Information.findOne();
 
         const mapsuborder = suborder.map((element) => {
-            if(!element.partner_id && element.partner_name =='บริษัท มารวยด้วยกัน จำกัด')
+            if(!element.partner_id)
             {
                 return {
                     partner_id:element.partner_id,
@@ -143,7 +143,7 @@ module.exports.add = async (req, res) => {
         return res.status(200).send({status:true,message:"เพิ่มออเดอร์สำเร็จ",data:saveOrder})
 
     }catch(error){
-        console.log(error)
+        console.log(error.message)
         return res.status(500).send({status:false,error:error.message});
     }
 }

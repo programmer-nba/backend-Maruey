@@ -33,6 +33,6 @@ const handleDisconnect = () => {
   });
 };
 
-//handleDisconnect();
+handleDisconnect();
 
 module.exports = connection;

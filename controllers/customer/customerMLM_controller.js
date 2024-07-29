@@ -22,3 +22,25 @@ exports.getUserAddress = (req, res) => {
     });
 };
 
+exports.getUserEwalletTransfer = (req, res) => {
+    const customerId = req.params.id;
+    if (!customerId) {
+        return res.status(400).json({
+          message: 'Customer ID is required',
+          status: false
+        });
+    }
+    connection.query('SELECT * FROM ewallet_tranfer WHERE customers_id_fk = ?', [customerId], (err, results, fields) => {
+        if (err) {
+            console.error('Error executing query:', err);
+            res.status(500).send('Error executing query');
+            return;
+        }
+        res.status(200).json({
+            message: 'success',
+            status: true,
+            data: results
+        });
+    });
+};
+

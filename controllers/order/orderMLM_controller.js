@@ -8,7 +8,7 @@ exports.getUserOrders = (req, res) => {
           status: false
         });
     }
-    connection.query('SELECT * FROM db_orders WHERE customers_id_fr = ?', [customerId], (err, results, fields) => {
+    connection.query('SELECT * FROM db_orders WHERE customers_id_fk = ?', [customerId], (err, results, fields) => {
         if (err) {
             console.error('Error executing query:', err);
             res.status(500).send('Error executing query');

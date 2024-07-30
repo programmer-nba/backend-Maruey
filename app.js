@@ -91,6 +91,8 @@ app.use(prefix + '/', require('./routes/product/productSQLRouter'))
 
 app.use(prefix + '/', require('./routes/customer/customerMLM'))
 
+app.use(prefix + '/', require('./routes/order/orderMLM'))
+
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // หรือกำหนด origin ที่เฉพาะเจาะจง
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');

@@ -22,6 +22,21 @@ exports.getUserOrders = (req, res) => {
     });
 };
 
+exports.createOrder = (req, res) => {
+    const customerId = req.params.id;
+    if (!customerId) {
+        return res.status(400).json({
+          message: 'Customer ID is required',
+          status: false
+        });
+    }
+    res.status(200).json({
+        message: 'success',
+        status: true,
+        data: req.body
+    });
+};
+
 exports.getOrderStatuses = (req, res) => {
     connection.query('SELECT * FROM dataset_order_status', [customerId], (err, results, fields) => {
         if (err) {

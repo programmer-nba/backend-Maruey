@@ -37,8 +37,8 @@ exports.createOrder = (req, res) => {
     });
 };
 
-exports.getOrderStatuses = (req, res) => {
-    connection.query('SELECT * FROM dataset_order_status', [customerId], (err, results, fields) => {
+exports.getShippingCosts = (req, res) => {
+    connection.query('SELECT * FROM dataset_shipping_cost', (err, results, fields) => {
         if (err) {
             console.error('Error executing query:', err);
             res.status(500).send('Error executing query');
@@ -51,4 +51,20 @@ exports.getOrderStatuses = (req, res) => {
         });
     });
 };
+
+exports.getShippingTypes = (req, res) => {
+    connection.query('SELECT * FROM dataset_shipping_type', (err, results, fields) => {
+        if (err) {
+            console.error('Error executing query:', err);
+            res.status(500).send('Error executing query');
+            return;
+        }
+        res.status(200).json({
+            message: 'success',
+            status: true,
+            data: results
+        });
+    });
+};
+
 

@@ -6,4 +6,7 @@ router.post('/:id/orders', Order.createOrder)
 router.get('/:id/orders', Order.getUserOrders)
 router.get('/order-status', Order.getOrderStatuses)
 
+router.get('/shipping/costs', Order.getShippingCosts)
+router.get('/shipping/types', Order.getShippingTypes)
+
 module.exports = router;

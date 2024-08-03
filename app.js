@@ -3,7 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-const cor = require('cors')
+const cors = require('cors')
 require('dotenv').config()
 const mongoose = require('mongoose')
 const axios = require('axios');
@@ -26,7 +26,7 @@ app.use(express.json({limit: '300mb'}));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cor())
+app.use(cors())
 //router
 const prefix = '/v1/Backend-Maruey'
 app.use(prefix+'/', require('./routes/index'));

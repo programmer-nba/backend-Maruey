@@ -200,3 +200,57 @@ exports.upsertUserAddressDelivery = async (req, res) => {
     }
 };
 
+exports.getUserData = async (req, res) => {
+    const customerId = req.params.id;
+    if (!customerId) {
+        return res.status(400).json({
+            message: 'Customer ID is required',
+            status: false
+        });
+    }
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const [results] = await connection.query('SELECT * FROM customers WHERE id = ?', [customerId]);
+
+        res.status(200).json({
+            message: 'success',
+            status: true,
+            data: results
+        });
+    } catch (err) {
+        console.error('Error executing query:', err);
+        res.status(500).send('Error executing query');
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+exports.getUplineData = async (req, res) => {
+    const { username } = req.params;
+    if (!username) {
+        return res.status(400).json({
+            message: 'username is required',
+            status: false
+        });
+    }
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const [results] = await connection.query('SELECT user_name, upline_id, type_upline, name FROM customers WHERE user_name = ?', [username]);
+
+        res.status(200).json({
+            message: 'success',
+            status: true,
+            data: results[0]
+        });
+    } catch (err) {
+        console.error('Error executing query:', err);
+        res.status(500).send('Error executing query');
+    } finally {
+        if (connection) connection.release();
+    }
+};
+

@@ -99,3 +99,33 @@ exports.getOrderStatuses = async (req, res) => {
         if (connection) connection.release();
     }
 };
+
+exports.getFarLocation = async (req, res) => {
+    let connection;
+    const { zipcode } = req.params;
+    try {
+        connection = await pool.getConnection();
+        const [results] = await connection.query('SELECT * FROM dataset_shipping_vicinity WHERE zip_code = ?', [zipcode]);
+
+        if (!results.length) {
+            return res.status(200).json({
+                message: zipcode + ' Not far',
+                status: true,
+                data: null,
+                price: 0
+            });
+        }
+
+        return res.status(200).json({
+            message: 'success',
+            status: true,
+            data: results[0],
+            price: 50
+        });
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send('Error executing query');
+    } finally {
+        if (connection) connection.release();
+    }
+};

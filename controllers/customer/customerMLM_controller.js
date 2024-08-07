@@ -254,3 +254,31 @@ exports.getUplineData = async (req, res) => {
     }
 };
 
+exports.getDownlineData = async (req, res) => {
+    const { username } = req.params;
+    if (!username) {
+        return res.status(400).json({
+            message: 'username is required',
+            status: false
+        });
+    }
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const [results] = await connection.query('SELECT user_name, upline_id, type_upline, name FROM customers WHERE upline_id = ?', [username]);
+
+        res.status(200).json({
+            message: 'success',
+            status: true,
+            datas: results,
+            data: results[0]
+        });
+    } catch (err) {
+        console.error('Error executing query:', err);
+        res.status(500).send('Error executing query');
+    } finally {
+        if (connection) connection.release();
+    }
+};
+

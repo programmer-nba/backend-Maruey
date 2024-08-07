@@ -9,4 +9,6 @@ router.get('/order-status', Order.getOrderStatuses)
 router.get('/shipping/costs', Order.getShippingCosts)
 router.get('/shipping/types', Order.getShippingTypes)
 
+router.get('/shipping/far/:zipcode', Order.getFarLocation)
+
 module.exports = router;

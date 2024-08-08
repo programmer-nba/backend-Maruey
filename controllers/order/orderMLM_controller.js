@@ -28,6 +28,36 @@ exports.getUserOrders = async (req, res) => {
     }
 };
 
+exports.getOrder = async (req, res) => {
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const order_id = req.params.id;
+        
+        if (!order_id) {
+            return res.status(400).json({
+                message: 'order_id is required',
+                status: false
+            });
+        }
+
+        const [results] = await connection.query('SELECT * FROM db_orders WHERE id = ?', [order_id]);
+        const [products] = await connection.query('SELECT * FROM db_order_products_list WHERE code_order = ?', [results[0]?.code_order]);
+
+        res.status(200).json({
+            message: 'success',
+            status: true,
+            data: results[0],
+            products: products
+        });
+    } catch (err) {
+        console.log(err);
+        res.status(500).send('Error executing query');
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
 exports.createOrder = async (req, res) => {
     const customerId = req.params.id;
     if (!customerId) {

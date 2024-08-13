@@ -1,4 +1,3 @@
-var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
@@ -6,7 +5,6 @@ var logger = require('morgan');
 const cors = require('cors')
 require('dotenv').config()
 const mongoose = require('mongoose')
-const axios = require('axios');
 
 process.env.TZ='UTC'
 var app = express();
@@ -93,24 +91,13 @@ app.use(prefix + '/', require('./routes/customer/customerMLM'))
 
 app.use(prefix + '/', require('./routes/order/orderMLM'))
 
+app.use(prefix + '/', require('./routes/customer/pv'))
+
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // หรือกำหนด origin ที่เฉพาะเจาะจง
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     next();
 });
-
-
-
-async function doSomething() {
-    try {   
-        console.log('เรัยกใช้ได้...');
-        // ตัวอย่างเช่นเรียกใช้งาน API
-        const response = await axios.get('http://localhost:5713/v1/Backend-Maruey/order/test/');
-        console.log('API response:', response.data.data);
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
 
 const port = process.env.PORT || 5713;
 app.listen(port,()=>{

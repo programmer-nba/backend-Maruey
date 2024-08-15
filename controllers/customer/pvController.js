@@ -10,7 +10,6 @@ function generateCode(length) {
 
 exports.jangPvActive = async (req, res) => {
     const { input_user_name_active, pv_active, currentUser } = req.body;
-    //const currentUser = req.user; // Assuming you're using authentication middleware
 
     try {
         // Begin transaction
@@ -267,5 +266,139 @@ const runBonusActive = async (pvData) => {
     } catch (err) {
         console.error(err);
         return false;
+    }
+};
+
+exports.jangPvUpgrad = async (req, res) => {
+    let = { user_name, input_user_name_upgrad, pv_upgrad_input } = req.body
+    try {
+        const userActionQuery = `
+            SELECT ewallet, id, user_name, ewallet_use, pv, bonus_total, pv_upgrad, name, last_name 
+            FROM customers 
+            WHERE user_name = ?
+            FOR UPDATE
+        `;
+        const [userActions] = await query(userActionQuery, [user_name]);
+        let userAction = userActions[0];
+        if (!userAction) {
+            return res.send('แจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง');
+        }
+
+        //console.log('userAction', userAction);
+        const userActionPVOld = userAction.pv;
+
+        const dataUserQuery = `
+            SELECT 
+                customers.pv,
+                customers.id,
+                customers.name,
+                customers.last_name,
+                customers.user_name,
+                customers.qualification_id,
+                customers.pv_upgrad,
+                customers.expire_date,
+                customers.introduce_id,
+                dataset_qualification.id as position_id,
+                dataset_qualification.pv_active,
+                customers.expire_insurance_date,
+                customers.status_customer
+            FROM customers
+            LEFT JOIN dataset_qualification ON dataset_qualification.code = customers.qualification_id
+            WHERE customers.user_name = ?
+        `;
+        const [dataUsers] = await query(dataUserQuery, [input_user_name_upgrad]);
+        let dataUser = dataUsers[0];
+        if (!dataUser) {
+            return res.send('แจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง');
+        }
+
+        const targetUserPVupgrateOld = parseFloat(dataUser.pv_upgrad);
+
+        if (dataUser.status_customer === 'cancel') {
+            return res.send('รหัสนี้ถูกยกเลิกเเล้วไม่สามารถทำรายการได้');
+        }
+
+        const pvBalance = parseFloat(userAction.pv) - pv_upgrad_input;
+        if (pvBalance < 0) {
+            return res.send('PV ไม่พอสำหรับการแจงอัพตำแหน่ง');
+        }
+
+        let qualificationId = dataUser.qualification_id || 'CM';
+        let pvUpgradTotal = parseFloat(dataUser.pv_upgrad) + pv_upgrad_input;
+        let expireDate = dataUser.expire_date;
+        let positionUpdate = dataUser.qualification_id;
+
+        const updateExpireDate = () => {
+            const currentDate = new Date();
+            const newExpireDate = new Date(expireDate || currentDate);
+            newExpireDate.setDate(newExpireDate.getDate() + 33);
+            return newExpireDate.toISOString().split('T')[0];
+        };
+
+        if (qualificationId === 'CM') {
+            if (pvUpgradTotal >= 20 && pvUpgradTotal < 400 && pv_upgrad_input >= 20) {
+                expireDate = updateExpireDate();
+                positionUpdate = 'MB';
+            } else if (pvUpgradTotal >= 400 && pvUpgradTotal < 800 && pv_upgrad_input >= 400) {
+                expireDate = updateExpireDate();
+                positionUpdate = 'MO';
+            } else if (pvUpgradTotal >= 800 && pvUpgradTotal < 1200 && pv_upgrad_input >= 400) {
+                expireDate = updateExpireDate();
+                positionUpdate = 'VIP';
+            } else if (pvUpgradTotal >= 1200 && pv_upgrad_input >= 400) {
+                expireDate = updateExpireDate();
+                positionUpdate = 'VVIP';
+            }
+        } else if (qualificationId === 'MB') {
+            if (pvUpgradTotal >= 400 && pvUpgradTotal < 800 && pv_upgrad_input >= 400) {
+                expireDate = updateExpireDate();
+                positionUpdate = 'MO';
+            } else if (pvUpgradTotal >= 800 && pvUpgradTotal < 1200 && pv_upgrad_input >= 400) {
+                expireDate = updateExpireDate();
+                positionUpdate = 'VIP';
+            } else if (pvUpgradTotal >= 1200 && pv_upgrad_input >= 400) {
+                expireDate = updateExpireDate();
+                positionUpdate = 'VVIP';
+            }
+        } else if (qualificationId === 'MO') {
+            if (pvUpgradTotal >= 800 && pvUpgradTotal < 1200 && pv_upgrad_input >= 400) {
+                expireDate = updateExpireDate();
+                positionUpdate = 'VIP';
+            } else if (pvUpgradTotal >= 1200 && pv_upgrad_input >= 400) {
+                expireDate = updateExpireDate();
+                positionUpdate = 'VVIP';
+            }
+        } else if (qualificationId === 'VIP') {
+            if (pvUpgradTotal >= 1200 && pv_upgrad_input >= 400) {
+                expireDate = updateExpireDate();
+                positionUpdate = 'VVIP';
+            }
+        }
+
+        const updateCustomerQuery = `
+            UPDATE customers 
+            SET pv_upgrad = ?, qualification_id = ?, expire_date = ? 
+            WHERE id = ?
+        `;
+        await query(updateCustomerQuery, [pvUpgradTotal, positionUpdate, expireDate, dataUser.id]);
+
+        const updateUserPvQuery = `
+            UPDATE customers 
+            SET pv = pv - ? 
+            WHERE id = ?
+        `;
+        await query(updateUserPvQuery, [pv_upgrad_input, userAction.id]);
+
+        console.log(`userAction ${userActionPVOld} --> ${userAction.pv-pv_upgrad_input}`)
+        console.log(`targetUser ${targetUserPVupgrateOld} --> ${pvUpgradTotal} | position ${dataUser.qualification_id} --> ${positionUpdate}`)
+
+        return res.status(200).json({
+            message: 'success',
+            status: true,
+            details: `${dataUser.user_name} pv_upgrade : ${targetUserPVupgrateOld} --> ${pvUpgradTotal} | position : ${dataUser.qualification_id} --> ${positionUpdate}`
+        });
+    } catch (error) {
+        console.error(error);
+        return res.send('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
     }
 };

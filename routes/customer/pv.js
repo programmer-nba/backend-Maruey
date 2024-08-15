@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const Pv = require('../../controllers/customer/pvController');
 
-//router.post('/runbonusactive', Pv.runBonusActive);
-router.post('/jangpvactive', Pv.jangPvActive);
+router.post('/jangpv/active', Pv.jangPvActive);
+router.post('/jangpv/upgrate', Pv.jangPvUpgrad);
 
 module.exports = router

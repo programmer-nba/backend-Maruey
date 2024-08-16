@@ -21,7 +21,7 @@ exports.jangPvActive = async (req, res) => {
             [currentUser.user_name]
         );
         let walletG = walletGs[0];
-        console.log('walletG', walletG);
+        //console.log('walletG', walletG);
         // Get data_user
         const [dataUsers] = await query(
             `SELECT c.pv, c.id, c.name, c.pv_upgrad, c.last_name, c.user_name, c.qualification_id,
@@ -33,7 +33,7 @@ exports.jangPvActive = async (req, res) => {
         );
 
         let dataUser = dataUsers[0];
-        console.log('dataUser', dataUser);
+        //console.log('dataUser', dataUser);
         if (!dataUser) {
             await query('ROLLBACK');
             return res.status(400).json({ error: 'เแจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง 1' });
@@ -63,7 +63,7 @@ exports.jangPvActive = async (req, res) => {
             dataUser.expire_date_bonus = expireDateBonus.toISOString().split('T')[0];
         }
 
-        console.log('dataUser2', dataUser);
+        //console.log('dataUser2', dataUser);
 
         const code = generateCode(6); // Generating a unique code
         //console.log(code);
@@ -82,7 +82,7 @@ exports.jangPvActive = async (req, res) => {
             status: 'Success'
         };
 
-        console.log('jangPv', jangPv);
+        //console.log('jangPv', jangPv);
 
         const [existingJangPv] = await query('SELECT * FROM jang_pv WHERE code = ?', [code]);
         //console.log(existingJangPv);
@@ -113,7 +113,7 @@ exports.jangPvActive = async (req, res) => {
             receive_time: new Date(),
             status: 2
         };
-        console.log('eWallet', eWallet);
+        //console.log('eWallet', eWallet);
 
         await query('UPDATE customers SET ewallet = ?, ewallet_use = ?, bonus_total = ?, expire_date = ?, expire_date_bonus = ? WHERE id = ?',
             [eWallet.balance, parseFloat(walletG.ewallet_use || 0) + parseFloat(jangPv.wallet), parseFloat(walletG.bonus_total || 0) + parseFloat(jangPv.wallet), dataUser.expire_date, dataUser.expire_date_bonus, walletG.id]);
@@ -129,7 +129,7 @@ exports.jangPvActive = async (req, res) => {
             customer: currentUser.user_name, 
             to_customer_username : dataUser.user_name
         }
-        console.log("runBonusActive", pvData);
+        //console.log("runBonusActive", pvData);
         const runBonus = await runBonusActive(pvData);
         if (!runBonus) {
             return res.status(400).json({ error: 'รันโบนัส PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง 3' });
@@ -225,7 +225,7 @@ const runBonusActive = async (pvData) => {
                         code_bonus: generateCode(6),
                         percen: 10
                     };
-                    console.log('bonus_active', bonus_active);
+                    //console.log('bonus_active', bonus_active);
 
                     const wallet_total = (parseFloat(jang_pv.pv) * 10) / 100;
                     const tax_total = (wallet_total * 3) / 100;
@@ -239,7 +239,7 @@ const runBonusActive = async (pvData) => {
                         bonus: qualification_id === 'CM' || (i >= 3 && qualification_id === 'MB') || (i >= 5 && qualification_id === 'MO' || qualification_id === 'VIP') ? 0 : wallet_total - tax_total
                     };
 
-                    console.log('arr_user', arr_user[i]);
+                    //console.log('arr_user', arr_user[i]);
 
                     bonus_active.tax_total = arr_user[i].bonus === 0 ? 0 : tax_total;
                     bonus_active.bonus_full = arr_user[i].bonus === 0 ? 0 : wallet_total;
@@ -269,8 +269,8 @@ const runBonusActive = async (pvData) => {
     }
 };
 
-exports.jangPvUpgrad = async (req, res) => {
-    let = { user_name, input_user_name_upgrad, pv_upgrad_input } = req.body
+exports.jangPvUpgrade = async (req, res) => {
+    let { user_name, input_user_name_upgrad, pv_upgrad_input } = req.body;
     try {
         const userActionQuery = `
             SELECT ewallet, id, user_name, ewallet_use, pv, bonus_total, pv_upgrad, name, last_name 
@@ -281,10 +281,9 @@ exports.jangPvUpgrad = async (req, res) => {
         const [userActions] = await query(userActionQuery, [user_name]);
         let userAction = userActions[0];
         if (!userAction) {
-            return res.send('แจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง');
+            return res.send('แจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง0');
         }
 
-        //console.log('userAction', userAction);
         const userActionPVOld = userAction.pv;
 
         const dataUserQuery = `
@@ -309,7 +308,7 @@ exports.jangPvUpgrad = async (req, res) => {
         const [dataUsers] = await query(dataUserQuery, [input_user_name_upgrad]);
         let dataUser = dataUsers[0];
         if (!dataUser) {
-            return res.send('แจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง');
+            return res.send('แจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง1');
         }
 
         const targetUserPVupgrateOld = parseFloat(dataUser.pv_upgrad);
@@ -389,16 +388,281 @@ exports.jangPvUpgrad = async (req, res) => {
         `;
         await query(updateUserPvQuery, [pv_upgrad_input, userAction.id]);
 
-        console.log(`userAction ${userActionPVOld} --> ${userAction.pv-pv_upgrad_input}`)
-        console.log(`targetUser ${targetUserPVupgrateOld} --> ${pvUpgradTotal} | position ${dataUser.qualification_id} --> ${positionUpdate}`)
+        //console.log(`userAction ${userActionPVOld} --> ${userAction.pv - pv_upgrad_input}`)
+        //console.log(`targetUser ${targetUserPVupgrateOld} --> ${pvUpgradTotal} | position ${dataUser.qualification_id} --> ${positionUpdate}`)
+
+        // Simulate the loop for 8 levels of the customer's network
+        let reportBonusRegister = [];
+        //console.log('dataUser', dataUser);
+        let customerUsername = dataUser.introduce_id;
+
+        for (let i = 1; i <= 8; i++) {
+            const runDataUserQuery = `
+                SELECT *
+                FROM customers 
+                WHERE user_name = ?
+                FOR UPDATE
+            `;
+            const [runDataUsers] = await query(runDataUserQuery, [customerUsername]);
+            //console.log('runDataUser', runDataUsers[0])
+            //console.log('customerUsername', customerUsername)
+            let runDataUser = runDataUsers[0];
+            if (!runDataUser) {
+                break;
+            }
+
+            qualificationId = runDataUser.qualification_id || 'CM';
+            let bonusPercent = 0;
+
+            if (i === 1) {
+                bonusPercent = 180;
+            } else if (i === 2) {
+                bonusPercent = 10;
+            } else if (i >= 3 && i <= 8) {
+                bonusPercent = 5;
+            }
+
+            let walletTotal = (pv_upgrad_input * bonusPercent) / 100;
+            let bonusAfterTax = walletTotal - (walletTotal * 3) / 100;
+
+            reportBonusRegister.push({
+                user_name: userAction.user_name,
+                name: `${userAction.name} ${userAction.last_name}`,
+                regis_user_name: input_user_name_upgrad,
+                regis_user_introduce_id: dataUser.introduce_id,
+                regis_name: `${dataUser.name} ${dataUser.last_name}`,
+                user_name_g: runDataUser.user_name,
+                old_position: dataUser.qualification_id,
+                new_position: positionUpdate,
+                name_g: `${runDataUser.name} ${runDataUser.last_name}`,
+                qualification: qualificationId,
+                g: i,
+                pv: pv_upgrad_input,
+                code_bonus: generateCode(6),
+                type: 'jangpv',
+                percen: bonusPercent,
+                bonus: qualificationId === 'CM' ? 0 : bonusAfterTax,
+                bonus_full: walletTotal,
+                tax_total: walletTotal * 0.03,
+            });
+
+            //console.log(reportBonusRegister)
+
+            customerUsername = runDataUser.introduce_id;
+        }
+
+        const insertReportBonusRegisterQuery = `
+            INSERT INTO report_bonus_register 
+            (user_name, name, regis_user_name, regis_user_introduce_id, regis_name, user_name_g, old_position, new_position, name_g, qualification, g, pv, code_bonus, type, percen, bonus, bonus_full, tax_total)
+            VALUES ?
+        `;
+        const reportBonusRegisterValues = reportBonusRegister.map(item => [
+            item.user_name, item.name, item.regis_user_name, item.regis_user_introduce_id, item.regis_name, 
+            item.user_name_g, item.old_position, item.new_position, item.name_g, item.qualification, 
+            item.g, item.pv, item.code_bonus, item.type, item.percen, item.bonus, item.bonus_full, item.tax_total
+        ]);
+
+        await query(insertReportBonusRegisterQuery, [reportBonusRegisterValues]);
+
+        // Update log_up_vl if qualification changed
+        if (dataUser.qualification_id !== positionUpdate) {
+            const logUpdateQuery = `
+                INSERT INTO log_up_vl (user_name, introduce_id, old_lavel, new_lavel, status, type)
+                VALUES (?, ?, ?, ?, ?, ?)
+            `;
+            await query(logUpdateQuery, [dataUser.user_name, dataUser.introduce_id, dataUser.qualification_id, positionUpdate, 'success', 'jangpv']);
+        }
+
+        const handleBonusRegisters = reportBonusRegister.map( async (item) => {
+            await handleBonusRegister(
+                item.code_bonus, input_user_name_upgrad, userAction, dataUser, positionUpdate, pv_upgrad_input, pvUpgradTotal
+            )
+        })
+
+        await Promise.all(handleBonusRegisters)
 
         return res.status(200).json({
             message: 'success',
             status: true,
-            details: `${dataUser.user_name} pv_upgrade : ${targetUserPVupgrateOld} --> ${pvUpgradTotal} | position : ${dataUser.qualification_id} --> ${positionUpdate}`
+            details: `${dataUser.user_name} pv_upgrade : ${targetUserPVupgrateOld} --> ${pvUpgradTotal} | position : ${dataUser.qualification_id} --> ${positionUpdate}`,
+            runabove: reportBonusRegister.length
         });
     } catch (error) {
         console.error(error);
         return res.send('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+    }
+};
+
+const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_action, data_user, position_update, pv_balance, pv_upgrad_total) => {
+    try {
+        await query('START TRANSACTION');
+
+        // Fetch report_bonus_register records
+        const getBonusRegistersQuery = `
+            SELECT * FROM report_bonus_register
+            WHERE status = 'panding'
+              AND bonus > 0
+              AND code_bonus = ?
+              AND regis_user_name = ?
+        `;
+        const [bonusRegisters] = await query(getBonusRegistersQuery, [code_bonus, input_user_name_upgrad]);
+
+        for (let b = 0; b < bonusRegisters.length; b++) {
+            const value = bonusRegisters[b];
+            if (value.bonus > 0) {
+                // Fetch customer wallet data
+                const walletQuery = `
+                    SELECT ewallet, id, user_name, ewallet_use, bonus_total
+                    FROM customers
+                    WHERE user_name = ?
+                    FOR UPDATE
+                `;
+                const [walletData] = await query(walletQuery, [value.user_name_g]);
+                const wallet_g = walletData[0];
+
+                if (!wallet_g) {
+                    throw new Error(`Customer with username ${value.user_name_g} not found`);
+                }
+
+                let wallet_g_user = wallet_g.ewallet || 0;
+                let bonus_total = (wallet_g.bonus_total || 0) + value.bonus;
+                let ewallet_use = wallet_g.ewallet_use || 0;
+
+                let wallet_g_total = wallet_g_user + value.bonus;
+                let ewallet_use_total = ewallet_use + value.bonus;
+
+                // Insert into eWallet
+                const insertEWalletQuery = `
+                    INSERT INTO eWallet (transaction_code, customers_id_fk, customer_username, tax_total, bonus_full, amt, old_balance, balance, type, note_orther, receive_date, receive_time, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `;
+                const eWalletValues = [
+                    code_bonus,
+                    wallet_g.id,
+                    value.user_name_g,
+                    value.tax_total,
+                    value.bonus_full,
+                    value.bonus,
+                    wallet_g_user,
+                    wallet_g_total,
+                    10,
+                    `โบนัสขยายธุรกิจ รหัส ${value.user_name} แนะนำรหัส ${value.regis_user_name}`,
+                    new Date(),
+                    new Date(),
+                    2
+                ];
+                await query(insertEWalletQuery, eWalletValues);
+
+                // Update customer data
+                const updateCustomerQuery = `
+                    UPDATE customers
+                    SET ewallet = ?, ewallet_use = ?, bonus_total = ?
+                    WHERE id = ?
+                `;
+                await query(updateCustomerQuery, [wallet_g_total, ewallet_use_total, bonus_total, wallet_g.id]);
+
+                // Update report_bonus_register status
+                const updateBonusRegisterQuery = `
+                    UPDATE report_bonus_register
+                    SET status = 'success'
+                    WHERE user_name_g = ?
+                      AND code_bonus = ?
+                      AND regis_user_name = ?
+                      AND g = ?
+                `;
+                await query(updateBonusRegisterQuery, [value.user_name_g, code_bonus, value.regis_user_name, value.g]);
+            } else {
+                const updateBonusRegisterQuery = `
+                    UPDATE report_bonus_register
+                    SET status = 'success'
+                    WHERE user_name_g = ?
+                      AND code_bonus = ?
+                      AND regis_user_name = ?
+                      AND g = ?
+                `;
+                await query(updateBonusRegisterQuery, [value.user_name_g, code_bonus, value.regis_user_name, value.g]);
+            }
+        }
+
+        // Handle VVIP specific logic
+        if (position_update === 'VVIP') {
+            const jangPv = {
+                code: generateCode(),
+                customer_username: user_action.user_name,
+                to_customer_username: input_user_name_upgrad,
+                old_position: data_user.qualification_id,
+                position: position_update,
+                pv_old: user_action.pv,
+                pv: pv_upgrad_total,
+                pv_balance: pv_balance,
+                type: '3',
+                status: 'Success'
+            };
+
+            const insertJangPvQuery = `
+                INSERT INTO jang_pv (code, customer_username, to_customer_username, old_position, position, pv_old, pv, pv_balance, type, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `;
+            const jangPvValues = [
+                jangPv.code,
+                jangPv.customer_username,
+                jangPv.to_customer_username,
+                jangPv.old_position,
+                jangPv.position,
+                jangPv.pv_old,
+                jangPv.pv,
+                jangPv.pv_balance,
+                jangPv.type,
+                jangPv.status
+            ];
+
+            await query(insertJangPvQuery, jangPvValues);
+
+            if (pv_upgrad_total >= 1200) {
+                const insurance_date = new Date();
+                insurance_date.setFullYear(insurance_date.getFullYear() + 1);
+                const logInsuranceData = {
+                    user_name: data_user.user_name,
+                    old_exprie_date: data_user.expire_insurance_date,
+                    new_exprie_date: insurance_date.toISOString().split('T')[0],
+                    position: 'VVIP',
+                    pv: pv_upgrad_total,
+                    status: 'success',
+                    type: 'jangpv'
+                };
+                await LogInsurance.create(logInsuranceData);
+
+                await query(`
+                    UPDATE customers
+                    SET qualification_id = ?, pv_upgrad = ?, vvip_register_type = 'jangpv1200'
+                    WHERE user_name = ?
+                `, [position_update, pv_upgrad_total, data_user.user_name]);
+            } else {
+                await query(`
+                    UPDATE customers
+                    SET qualification_id = ?, pv_upgrad = ?, vvip_register_type = 'jangpv_vvip', pv_upgrad_vvip = ?
+                    WHERE user_name = ?
+                `, [position_update, pv_upgrad_total, pv_upgrad_total, data_user.user_name]);
+            }
+        } else {
+            await query(`
+                UPDATE customers
+                SET qualification_id = ?, pv_upgrad = ?
+                WHERE user_name = ?
+            `, [position_update, pv_upgrad_total, data_user.user_name]);
+        }
+
+        // Update user_action
+        await query(`
+            UPDATE customers
+            SET pv = ?
+            WHERE id = ?
+        `, [pv_balance, user_action.id]);
+
+        await query('COMMIT');
+        return { status: 200, message: `แจงอัพเกรดรหัส ${data_user.user_name} สำเร็จ` };
+    } catch (error) {
+        await query('ROLLBACK');
+        return { status: 500, message: error.message };
     }
 };

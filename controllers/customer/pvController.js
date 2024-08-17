@@ -284,7 +284,7 @@ exports.jangPvUpgrade = async (req, res) => {
             return res.send('แจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง0');
         }
 
-        const userActionPVOld = userAction.pv;
+        //const userActionPVOld = userAction.pv;
 
         const dataUserQuery = `
             SELECT 
@@ -335,40 +335,40 @@ exports.jangPvUpgrade = async (req, res) => {
         };
 
         if (qualificationId === 'CM') {
-            if (pvUpgradTotal >= 20 && pvUpgradTotal < 400 && pv_upgrad_input >= 20) {
+            if (pvUpgradTotal >= 20 && pvUpgradTotal < 400) {
                 expireDate = updateExpireDate();
                 positionUpdate = 'MB';
-            } else if (pvUpgradTotal >= 400 && pvUpgradTotal < 800 && pv_upgrad_input >= 400) {
+            } else if (pvUpgradTotal >= 400 && pvUpgradTotal < 800) {
                 expireDate = updateExpireDate();
                 positionUpdate = 'MO';
-            } else if (pvUpgradTotal >= 800 && pvUpgradTotal < 1200 && pv_upgrad_input >= 400) {
+            } else if (pvUpgradTotal >= 800 && pvUpgradTotal < 1200) {
                 expireDate = updateExpireDate();
                 positionUpdate = 'VIP';
-            } else if (pvUpgradTotal >= 1200 && pv_upgrad_input >= 400) {
+            } else if (pvUpgradTotal >= 1200) {
                 expireDate = updateExpireDate();
                 positionUpdate = 'VVIP';
             }
         } else if (qualificationId === 'MB') {
-            if (pvUpgradTotal >= 400 && pvUpgradTotal < 800 && pv_upgrad_input >= 400) {
+            if (pvUpgradTotal >= 400 && pvUpgradTotal < 800) {
                 expireDate = updateExpireDate();
                 positionUpdate = 'MO';
-            } else if (pvUpgradTotal >= 800 && pvUpgradTotal < 1200 && pv_upgrad_input >= 400) {
+            } else if (pvUpgradTotal >= 800 && pvUpgradTotal < 1200) {
                 expireDate = updateExpireDate();
                 positionUpdate = 'VIP';
-            } else if (pvUpgradTotal >= 1200 && pv_upgrad_input >= 400) {
+            } else if (pvUpgradTotal >= 1200) {
                 expireDate = updateExpireDate();
                 positionUpdate = 'VVIP';
             }
         } else if (qualificationId === 'MO') {
-            if (pvUpgradTotal >= 800 && pvUpgradTotal < 1200 && pv_upgrad_input >= 400) {
+            if (pvUpgradTotal >= 800 && pvUpgradTotal < 1200) {
                 expireDate = updateExpireDate();
                 positionUpdate = 'VIP';
-            } else if (pvUpgradTotal >= 1200 && pv_upgrad_input >= 400) {
+            } else if (pvUpgradTotal >= 1200) {
                 expireDate = updateExpireDate();
                 positionUpdate = 'VVIP';
             }
         } else if (qualificationId === 'VIP') {
-            if (pvUpgradTotal >= 1200 && pv_upgrad_input >= 400) {
+            if (pvUpgradTotal >= 1200) {
                 expireDate = updateExpireDate();
                 positionUpdate = 'VVIP';
             }
@@ -664,5 +664,380 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
     } catch (error) {
         await query('ROLLBACK');
         return { status: 500, message: error.message };
+    }
+};
+
+const RunBonusCashBack = async (code) => {
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    try {
+        // Get the jang_pv record
+        const [jangPv] = await connection.query('SELECT * FROM jang_pv WHERE code = ?', [code]);
+        if (!jangPv.length) {
+            await connection.rollback();
+            return false;
+        }
+
+        const [dataUserG1] = await connection.query(`
+            SELECT name, last_name, introduce_id, user_name, upline_id, qualification_id, expire_date
+            FROM customers
+            WHERE user_name = ?
+        `, [jangPv[0].to_customer_username]);
+
+        if (!dataUserG1.length) {
+            await connection.rollback();
+            return false;
+        }
+
+        let customerUsername = dataUserG1[0].introduce_id;
+        let arrUser = [];
+        let reportBonusCashback = [];
+
+        for (let i = 1; i <= 7; i++) {
+            let [dataUser] = await connection.query(`
+                SELECT name, last_name, user_name, introduce_id, qualification_id, expire_date
+                FROM customers
+                WHERE user_name = ?
+            `, [customerUsername]);
+
+            if (i === 1) {
+                var nameG1 = `${dataUser[0].name} ${dataUser[0].last_name}`;
+            }
+
+            if (!dataUser.length) {
+                // Only insert if reportBonusCashback has data
+                if (reportBonusCashback.length > 0) {
+                    // Filter out empty entries
+                    const filteredValues = reportBonusCashback.filter(data => data).map(data => [
+                        data.user_name,
+                        data.name,
+                        data.name_g,
+                        data.user_name_g,
+                        data.qualification,
+                        data.pv,
+                        data.code,
+                        data.code_bonus,
+                        data.bonus,
+                        data.tax_total,
+                        data.bonus_full
+                    ]);
+
+                    if (filteredValues.length > 0) {
+                        const sql = `
+                            INSERT INTO report_bonus_cashback (user_name, name, name_g, user_name_g, qualification, pv, code, code_bonus, bonus, tax_total, bonus_full)
+                            VALUES ?
+                        `;
+
+                        // Log the SQL query for debugging
+                        console.log("Generated SQL Query:", sql);
+                        console.log("Filtered Values:", filteredValues);
+
+                        try {
+                            // Execute the query using parameterized values
+                            await connection.query(sql, [filteredValues]);
+                        } catch (error) {
+                            console.error("Error executing SQL query:", error.message);
+                            await connection.rollback();
+                            return false;
+                        }
+                    }
+                }
+
+                await connection.commit();
+                return true;
+            }
+
+            while (true) {
+                if (!dataUser[0].name) {
+                    customerUsername = dataUser[0].introduce_id;
+                    [dataUser] = await connection.query(`
+                        SELECT name, last_name, user_name, introduce_id, qualification_id, expire_date
+                        FROM customers
+                        WHERE user_name = ?
+                    `, [customerUsername]);
+                } else {
+                    const qualificationId = dataUser[0].qualification_id || 'CM';
+
+                    reportBonusCashback[i] = {
+                        user_name: jangPv[0].to_customer_username,
+                        name: nameG1,
+                        user_name_g: dataUser[0].user_name,
+                        name_g: `${dataUser[0].name} ${dataUser[0].last_name}`,
+                        code: jangPv[0].code,
+                        qualification: qualificationId,
+                        g: i,
+                        pv: jangPv[0].pv,
+                        code_bonus: generateCode(9),
+                    };
+
+                    arrUser[i] = {
+                        user_name: dataUser[0].user_name,
+                        lv: [i],
+                        bonus_percen: 10,
+                        pv: jangPv[0].pv,
+                        position: qualificationId,
+                    };
+
+                    // Bonus Calculation
+                    const walletTotal = jangPv[0].pv * 10 / 100;
+                    let bonus = walletTotal;
+                    let taxTotal = walletTotal * 3 / 100;
+                    let bonusFull = walletTotal;
+
+                    if (i <= 2 || qualificationId === 'CM') {
+                        reportBonusCashback[i].tax_total = taxTotal;
+                        reportBonusCashback[i].bonus_full = bonusFull;
+                        reportBonusCashback[i].bonus = bonus - taxTotal;
+                    } else if (i >= 3 && i <= 4) {
+                        if (qualificationId === 'CM' || qualificationId === 'MB') {
+                            bonus = taxTotal = bonusFull = 0;
+                        } else {
+                            reportBonusCashback[i].tax_total = taxTotal;
+                            reportBonusCashback[i].bonus_full = bonusFull;
+                            reportBonusCashback[i].bonus = bonus - taxTotal;
+                        }
+                    } else {
+                        if (['CM', 'MB', 'MO', 'VIP'].includes(qualificationId) && [5, 6, 7].includes(i)) {
+                            bonus = taxTotal = bonusFull = 0;
+                        } else {
+                            reportBonusCashback[i].tax_total = taxTotal;
+                            reportBonusCashback[i].bonus_full = bonusFull;
+                            reportBonusCashback[i].bonus = bonus - taxTotal;
+                        }
+                    }
+
+                    customerUsername = dataUser[0].introduce_id;
+                    break;
+                }
+            }
+        }
+
+        // Insert final reportBonusCashback data
+        if (reportBonusCashback.length > 0) {
+            // Filter out empty entries
+            const filteredValues = reportBonusCashback.filter(data => data).map(data => [
+                data.user_name,
+                data.name,
+                data.name_g,
+                data.user_name_g,
+                data.qualification,
+                data.pv,
+                data.code,
+                data.code_bonus,
+                data.bonus,
+                data.tax_total,
+                data.bonus_full
+            ]);
+
+            if (filteredValues.length > 0) {
+                const sql = `
+                    INSERT INTO report_bonus_cashback (user_name, name, name_g, user_name_g, qualification, pv, code, code_bonus, bonus, tax_total, bonus_full)
+                    VALUES ?
+                `;
+
+                // Log the SQL query for debugging
+                //console.log("Generated SQL Query:", sql);
+                //console.log("Filtered Values:", filteredValues);
+
+                try {
+                    // Execute the query using parameterized values
+                    await connection.query(sql, [filteredValues]);
+                } catch (error) {
+                    //console.error("Error executing SQL query:", error.message);
+                    await connection.rollback();
+                    return false;
+                }
+            }
+        }
+
+        await connection.commit();
+        return true;
+    } catch (error) {
+        console.error("Transaction error:", error.message);
+        await connection.rollback();
+        return false;
+    } finally {
+        connection.release();
+    }
+};
+
+
+
+exports.jangPvCashBack = async (req, res) => {
+    const { active_user_name, active_user_id, user_name, pv, type } = req.body;
+
+    if (type == 2) {
+        if (pv <= 0) {
+            return res.status(400).send('ไม่สามารถแจง 0 PV ได้');
+        }
+
+        const userQuery = `
+            SELECT id, user_name, name, last_name, pv, qualification_id, ewallet, ewallet_use 
+            FROM customers 
+            WHERE user_name = ?
+        `;
+        const [users] = await query(userQuery, [user_name]);
+        const user = users[0];
+
+        if (!user) {
+            return res.status(404).send('ไม่มี User ' + user_name + 'ในระบบ');
+        }
+
+        if (pv > user.pv) {
+            return res.status(400).json({
+                message: 'PV ไม่พอสำหรับการแจง',
+                //user: user,
+                user_pv: user.pv,
+                pv: pv
+            });
+        }
+
+        const customerUpdateQuery = `
+            SELECT * FROM customers 
+            WHERE id = ? FOR UPDATE
+        `;
+        const [customerUpdates] = await query(customerUpdateQuery, [user.id]);
+        const customerUpdate = customerUpdates[0];
+
+        const code = generateCode(6);  // Replace with your code generation logic
+
+        const bonusPercenQuery = `
+            SELECT bonus_jang_pv 
+            FROM dataset_qualification 
+            WHERE code = ?
+        `;
+        const [bonusPercens] = await query(bonusPercenQuery, [user.qualification_id]);
+        const bonusPercen = bonusPercens[0]?.bonus_jang_pv;
+
+        const pvBalance = parseFloat(user.pv) - pv;
+        const pvToPrice = pv * parseFloat(bonusPercen) / 100;
+        const pvToPriceTax = pvToPrice - (pvToPrice * 3 / 100);
+        const ewalletUser = parseFloat(user.ewallet) || 0;
+        const ewalletUse = parseFloat(customerUpdate.ewallet_use) || 0;
+        const walletBalance = ewalletUser + pvToPriceTax;
+
+        const jangPv = {
+            code,
+            customer_username: active_user_name, // Assuming you have a user object from authentication
+            to_customer_username: user_name,
+            position: user.qualification_id,
+            bonus_percen: parseFloat(bonusPercen),
+            pv_old: parseFloat(user.pv),
+            pv,
+            pv_balance: pvBalance,
+            wallet: pvToPriceTax,
+            old_wallet: ewalletUser,
+            wallet_balance: walletBalance,
+            note_orther: '',
+            type: '2',
+            status: 'Success'
+        };
+
+        if (parseFloat(user.pv_upgrad) >= 1200) {
+            customerUpdate.pv_upgrad = parseFloat(customerUpdate.pv_upgrad) + pv;
+        }
+
+        customerUpdate.pv = pvBalance;
+        customerUpdate.ewallet = ewalletUser + pvToPriceTax;
+        customerUpdate.ewallet_use = ewalletUse + pvToPriceTax;
+
+        const eWallet = {
+            transaction_code: code,
+            customers_id_fk: active_user_id,
+            customer_username: active_user_name,
+            customers_id_receive: user.id,
+            customers_name_receive: user.user_name,
+            tax_total: pvToPrice * 3 / 100,
+            bonus_full: pvToPrice,
+            amt: pvToPriceTax,
+            old_balance: ewalletUser,
+            balance: walletBalance,
+            type: 5,
+            receive_date: new Date(),
+            receive_time: new Date(),
+            status: 2
+        };
+
+        try {
+            await query('BEGIN');
+
+            const checkJangPvQuery = `
+                SELECT * FROM jang_pv WHERE code = ?
+            `;
+            const [checkJangPv] = await query(checkJangPvQuery, [code]);
+            //console.log('checkJangPv', checkJangPv);
+            if (checkJangPv.length) {
+                await query('ROLLBACK');
+                return res.status(400).send('แจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง');
+            }
+
+            await query('UPDATE customers SET ? WHERE id = ?', [customerUpdate, customerUpdate.id]);
+            await query('INSERT INTO jang_pv SET ?', jangPv);
+            await query('INSERT INTO eWallet SET ?', eWallet);
+
+            const runBonusCashBack = await RunBonusCashBack(code); // Implement this function based on the PHP code
+            //console.log('code', code);
+            if (runBonusCashBack) {
+                const reportBonusCashbackQuery = `
+                    SELECT * FROM report_bonus_cashback WHERE code = ?
+                `;
+                const [reportBonusCashback] = await query(reportBonusCashbackQuery, [code]);
+                //console.log('reportBonusCashback', reportBonusCashback);
+                for (const value of reportBonusCashback) {
+                    //console.log('value', value);
+                    if (parseFloat(value.bonus) > 0) {
+                        const walletGQuery = `
+                            SELECT id, user_name, ewallet, ewallet_use, bonus_total 
+                            FROM customers 
+                            WHERE user_name = ?
+                            FOR UPDATE
+                        `;
+                        const [walletGs] = await query(walletGQuery, [value.user_name_g]);
+                        const walletG = walletGs[0];
+
+                        const walletGUser = parseFloat(walletG.ewallet) || 0;
+                        const ewalletUseTotal = parseFloat(walletG.ewallet_use) || 0;
+                        const walletGTotal = walletGUser + parseFloat(value.bonus);
+                        const eWalletCashBack = {
+                            transaction_code: value.code_bonus,
+                            customers_id_fk: walletG.id,
+                            customer_username: value.user_name_g,
+                            customers_id_receive: user.id,
+                            customers_name_receive: user.user_name,
+                            tax_total: value.tax_total,
+                            bonus_full: value.bonus_full,
+                            amt: value.bonus,
+                            old_balance: walletGUser,
+                            balance: walletGTotal,
+                            type: 6,
+                            note_orther: 'G' + value.g,
+                            receive_date: new Date(),
+                            receive_time: new Date(),
+                            status: 2
+                        };
+
+                        await query('INSERT INTO eWallet SET ?', eWalletCashBack);
+
+                        await query('UPDATE customers SET ewallet = ?, ewallet_use = ? WHERE id = ?', 
+                            [walletGTotal, ewalletUseTotal + parseFloat(value.bonus), walletG.id]);
+
+                        await query('UPDATE report_bonus_cashback SET status = "success", date_active = NOW() WHERE id = ?', 
+                            [value.id]);
+                    }
+                }
+            }
+
+            await query('COMMIT');
+            return res.status(200).json({
+                message: 'success',
+                status: true
+            });
+        } catch (error) {
+            await query('ROLLBACK');
+            return res.status(500).send(error.message);
+        }
+    } else {
+        return res.status(400).send('เงื่อนไขการแจง PV ไม่ถูกต้อง');
     }
 };

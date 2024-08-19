@@ -8,6 +8,20 @@ function generateCode(length) {
     return Math.random().toString(36).substring(2, 2 + length).toUpperCase();
 }
 
+exports.getUserJangPv = async (req, res) => {
+    const { username } = req.params;
+    try {
+        const [results] = await query(
+            'SELECT * FROM jang_pv WHERE customer_username = ?', [username]
+        );
+        return res.status(200).json({message: 'success', status: true, data: results})
+    }
+    catch(err) {
+        console.log(err)
+        return res.status(500).json({message: err.message})
+    }
+}
+
 exports.jangPvActive = async (req, res) => {
     const { input_user_name_active, pv_active, currentUser } = req.body;
 
@@ -40,7 +54,7 @@ exports.jangPvActive = async (req, res) => {
         }
 
         const qualificationId = dataUser.qualification_id || 'CM';
-        const pvBalance = walletG.pv - pv_active;
+        const pvBalance = parseFloat(walletG.pv) - pv_active;
 
         if (pvBalance < 0) {
             await query('ROLLBACK');
@@ -115,8 +129,8 @@ exports.jangPvActive = async (req, res) => {
         };
         //console.log('eWallet', eWallet);
 
-        await query('UPDATE customers SET ewallet = ?, ewallet_use = ?, bonus_total = ?, expire_date = ?, expire_date_bonus = ? WHERE id = ?',
-            [eWallet.balance, parseFloat(walletG.ewallet_use || 0) + parseFloat(jangPv.wallet), parseFloat(walletG.bonus_total || 0) + parseFloat(jangPv.wallet), dataUser.expire_date, dataUser.expire_date_bonus, walletG.id]);
+        await query('UPDATE customers SET pv = ?, ewallet = ?, ewallet_use = ?, bonus_total = ?, expire_date = ?, expire_date_bonus = ? WHERE id = ?',
+            [pvBalance, eWallet.balance, parseFloat(walletG.ewallet_use || 0) + parseFloat(jangPv.wallet), parseFloat(walletG.bonus_total || 0) + parseFloat(jangPv.wallet), dataUser.expire_date, dataUser.expire_date_bonus, walletG.id]);
 
         await query('INSERT INTO ewallet SET ?', [eWallet]);
 
@@ -321,6 +335,7 @@ exports.jangPvUpgrade = async (req, res) => {
         if (pvBalance < 0) {
             return res.send('PV ไม่พอสำหรับการแจงอัพตำแหน่ง');
         }
+        console.log('pvBalance', pvBalance);
 
         let qualificationId = dataUser.qualification_id || 'CM';
         let pvUpgradTotal = parseFloat(dataUser.pv_upgrad) + pv_upgrad_input;
@@ -383,12 +398,12 @@ exports.jangPvUpgrade = async (req, res) => {
 
         const updateUserPvQuery = `
             UPDATE customers 
-            SET pv = pv - ? 
+            SET pv = ? 
             WHERE id = ?
         `;
-        await query(updateUserPvQuery, [pv_upgrad_input, userAction.id]);
+        await query(updateUserPvQuery, [userAction.pv - pv_upgrad_input, userAction.id]);
 
-        //console.log(`userAction ${userActionPVOld} --> ${userAction.pv - pv_upgrad_input}`)
+        console.log(`userAction ${userAction.pv} --> ${userAction.pv - pv_upgrad_input}`)
         //console.log(`targetUser ${targetUserPVupgrateOld} --> ${pvUpgradTotal} | position ${dataUser.qualification_id} --> ${positionUpdate}`)
 
         // Simulate the loop for 8 levels of the customer's network
@@ -630,7 +645,7 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
                     status: 'success',
                     type: 'jangpv'
                 };
-                await LogInsurance.create(logInsuranceData);
+                //await LogInsurance.create(logInsuranceData);
 
                 await query(`
                     UPDATE customers
@@ -653,11 +668,11 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
         }
 
         // Update user_action
-        await query(`
+        /* await query(`
             UPDATE customers
             SET pv = ?
             WHERE id = ?
-        `, [pv_balance, user_action.id]);
+        `, [pv_balance, user_action.id]); */
 
         await query('COMMIT');
         return { status: 200, message: `แจงอัพเกรดรหัส ${data_user.user_name} สำเร็จ` };

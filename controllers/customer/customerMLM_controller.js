@@ -227,6 +227,33 @@ exports.getUserData = async (req, res) => {
     }
 };
 
+exports.getMemberData = async (req, res) => {
+    const username = req.params.username;
+    if (!username) {
+        return res.status(400).json({
+            message: 'username is required',
+            status: false
+        });
+    }
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const [results] = await connection.query('SELECT * FROM customers WHERE user_name = ?', [username]);
+
+        res.status(200).json({
+            message: 'success',
+            status: true,
+            data: results[0]
+        });
+    } catch (err) {
+        console.error('Error executing query:', err);
+        res.status(500).send('Error executing query');
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
 exports.getUplineData = async (req, res) => {
     const { username } = req.params;
     if (!username) {

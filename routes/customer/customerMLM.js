@@ -8,6 +8,7 @@ router.get('/check-user/:id', Customer.checkIntroduceUser);
 router.get('/:id/delivery', Customer.getUserAddressDelivery);
 router.post('/delivery', Customer.upsertUserAddressDelivery);
 router.get('/:id/me', Customer.getUserData);
+router.get('/member/:username', Customer.getMemberData);
 router.get('/upline/:username', Customer.getUplineData);
 router.get('/downline/:username', Customer.getDownlineData);
 

@@ -24,7 +24,7 @@ exports.getUserJangPv = async (req, res) => {
 
 exports.jangPvActive = async (req, res) => {
     const { input_user_name_active, pv_active, currentUser } = req.body;
-
+    console.log('request', req.body);
     try {
         // Begin transaction
         await query('START TRANSACTION');
@@ -47,7 +47,7 @@ exports.jangPvActive = async (req, res) => {
         );
 
         let dataUser = dataUsers[0];
-        //console.log('dataUser', dataUser);
+        console.log('dataUser', dataUser);
         if (!dataUser) {
             await query('ROLLBACK');
             return res.status(400).json({ error: 'เแจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง 1' });
@@ -77,7 +77,7 @@ exports.jangPvActive = async (req, res) => {
             dataUser.expire_date_bonus = expireDateBonus.toISOString().split('T')[0];
         }
 
-        //console.log('dataUser2', dataUser);
+        console.log('dataUser2', dataUser);
 
         const code = generateCode(6); // Generating a unique code
         //console.log(code);
@@ -128,22 +128,32 @@ exports.jangPvActive = async (req, res) => {
             status: 2
         };
         //console.log('eWallet', eWallet);
+        
+        console.log('pvBalance', pvBalance)
+        console.log('ewallet', eWallet.balance)
+        console.log('ewallet_use', parseFloat(walletG.ewallet_use || 0) + parseFloat(jangPv.wallet))
+        console.log('bonus_total', parseFloat(walletG.bonus_total || 0) + parseFloat(jangPv.wallet))
+        console.log('from', walletG.id)
+        await query('UPDATE customers SET pv = ?, ewallet = ?, ewallet_use = ?, bonus_total = ? WHERE id = ?',
+            [pvBalance, eWallet.balance, parseFloat(walletG.ewallet_use || 0) + parseFloat(jangPv.wallet), parseFloat(walletG.bonus_total || 0) + parseFloat(jangPv.wallet), walletG.id]);
 
-        await query('UPDATE customers SET pv = ?, ewallet = ?, ewallet_use = ?, bonus_total = ?, expire_date = ?, expire_date_bonus = ? WHERE id = ?',
-            [pvBalance, eWallet.balance, parseFloat(walletG.ewallet_use || 0) + parseFloat(jangPv.wallet), parseFloat(walletG.bonus_total || 0) + parseFloat(jangPv.wallet), dataUser.expire_date, dataUser.expire_date_bonus, walletG.id]);
+        console.log('to_id', dataUser.id)
+        console.log('expire_date', dataUser.expire_date)
+        console.log('expire_date_bonus', dataUser.expire_date_bonus)
+        await query('UPDATE customers SET expire_date = ?, expire_date_bonus = ? WHERE id = ?',
+            [dataUser.expire_date, dataUser.expire_date_bonus, dataUser.id]);
 
         await query('INSERT INTO ewallet SET ?', [eWallet]);
 
         // Commit transaction
         await query('COMMIT');
 
-
         const pvData = { 
             code: code, 
             customer: currentUser.user_name, 
             to_customer_username : dataUser.user_name
         }
-        //console.log("runBonusActive", pvData);
+        console.log("runBonusActive", pvData);
         const runBonus = await runBonusActive(pvData);
         if (!runBonus) {
             return res.status(400).json({ error: 'รันโบนัส PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง 3' });
@@ -223,7 +233,7 @@ const runBonusActive = async (pvData) => {
                 } else {
                     const qualification_id = data_user.qualification_id || 'CM';
                     let introduce_id = await query('SELECT introduce_id FROM customers WHERE user_name = ?', [jang_pv.to_customer_username])
-                    //console.log('intro', introduce_id);
+                    console.log('intro', introduce_id[0][0]);
                     const bonus_active = {
                         user_name: jang_pv.to_customer_username,
                         name: name_g1,
@@ -253,7 +263,7 @@ const runBonusActive = async (pvData) => {
                         bonus: qualification_id === 'CM' || (i >= 3 && qualification_id === 'MB') || (i >= 5 && qualification_id === 'MO' || qualification_id === 'VIP') ? 0 : wallet_total - tax_total
                     };
 
-                    //console.log('arr_user', arr_user[i]);
+                    console.log('arr_user', arr_user[i]);
 
                     bonus_active.tax_total = arr_user[i].bonus === 0 ? 0 : tax_total;
                     bonus_active.bonus_full = arr_user[i].bonus === 0 ? 0 : wallet_total;
@@ -731,6 +741,8 @@ const RunBonusCashBack = async (code) => {
                         data.user_name_g,
                         data.qualification,
                         data.pv,
+                        data.g,
+                        data.percen,
                         data.code,
                         data.code_bonus,
                         data.bonus,
@@ -740,7 +752,7 @@ const RunBonusCashBack = async (code) => {
 
                     if (filteredValues.length > 0) {
                         const sql = `
-                            INSERT INTO report_bonus_cashback (user_name, name, name_g, user_name_g, qualification, pv, code, code_bonus, bonus, tax_total, bonus_full)
+                            INSERT INTO report_bonus_cashback (user_name, name, name_g, user_name_g, qualification, pv, g, percen, code, code_bonus, bonus, tax_total, bonus_full)
                             VALUES ?
                         `;
 
@@ -782,6 +794,7 @@ const RunBonusCashBack = async (code) => {
                         code: jangPv[0].code,
                         qualification: qualificationId,
                         g: i,
+                        percen: 10,
                         pv: jangPv[0].pv,
                         code_bonus: generateCode(9),
                     };
@@ -838,6 +851,8 @@ const RunBonusCashBack = async (code) => {
                 data.user_name_g,
                 data.qualification,
                 data.pv,
+                data.g,
+                data.percen,
                 data.code,
                 data.code_bonus,
                 data.bonus,
@@ -847,7 +862,7 @@ const RunBonusCashBack = async (code) => {
 
             if (filteredValues.length > 0) {
                 const sql = `
-                    INSERT INTO report_bonus_cashback (user_name, name, name_g, user_name_g, qualification, pv, code, code_bonus, bonus, tax_total, bonus_full)
+                    INSERT INTO report_bonus_cashback (user_name, name, name_g, user_name_g, qualification, pv, g, percen, code, code_bonus, bonus, tax_total, bonus_full)
                     VALUES ?
                 `;
 
@@ -887,6 +902,18 @@ exports.jangPvCashBack = async (req, res) => {
             return res.status(400).send('ไม่สามารถแจง 0 PV ได้');
         }
 
+        const activeUserQuery = `
+            SELECT id, user_name, name, last_name, pv, qualification_id, ewallet, ewallet_use 
+            FROM customers 
+            WHERE user_name = ?
+        `;
+        const [activeUsers] = await query(activeUserQuery, [active_user_name]);
+        const activeUser = activeUsers[0];
+
+        if (!activeUser) {
+            return res.status(404).send('ไม่มี User ' + active_user_name + 'ในระบบ');
+        }
+
         const userQuery = `
             SELECT id, user_name, name, last_name, pv, qualification_id, ewallet, ewallet_use 
             FROM customers 
@@ -899,11 +926,11 @@ exports.jangPvCashBack = async (req, res) => {
             return res.status(404).send('ไม่มี User ' + user_name + 'ในระบบ');
         }
 
-        if (pv > user.pv) {
+        if (pv > activeUser.pv) {
             return res.status(400).json({
                 message: 'PV ไม่พอสำหรับการแจง',
                 //user: user,
-                user_pv: user.pv,
+                user_pv: activeUser.pv,
                 pv: pv
             });
         }
@@ -925,9 +952,10 @@ exports.jangPvCashBack = async (req, res) => {
         const [bonusPercens] = await query(bonusPercenQuery, [user.qualification_id]);
         const bonusPercen = bonusPercens[0]?.bonus_jang_pv;
 
-        const pvBalance = parseFloat(user.pv) - pv;
+        const pvBalance = parseFloat(activeUser.pv) - pv;
         const pvToPrice = pv * parseFloat(bonusPercen) / 100;
         const pvToPriceTax = pvToPrice - (pvToPrice * 3 / 100);
+
         const ewalletUser = parseFloat(user.ewallet) || 0;
         const ewalletUse = parseFloat(customerUpdate.ewallet_use) || 0;
         const walletBalance = ewalletUser + pvToPriceTax;
@@ -953,7 +981,7 @@ exports.jangPvCashBack = async (req, res) => {
             customerUpdate.pv_upgrad = parseFloat(customerUpdate.pv_upgrad) + pv;
         }
 
-        customerUpdate.pv = pvBalance;
+        //customerUpdate.pv = pvBalance;
         customerUpdate.ewallet = ewalletUser + pvToPriceTax;
         customerUpdate.ewallet_use = ewalletUse + pvToPriceTax;
 
@@ -988,6 +1016,7 @@ exports.jangPvCashBack = async (req, res) => {
             }
 
             await query('UPDATE customers SET ? WHERE id = ?', [customerUpdate, customerUpdate.id]);
+            await query('UPDATE customers SET pv = ? WHERE id = ?', [pvBalance, activeUser.id]);
             await query('INSERT INTO jang_pv SET ?', jangPv);
             await query('INSERT INTO eWallet SET ?', eWallet);
 

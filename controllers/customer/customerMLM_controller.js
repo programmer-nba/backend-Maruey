@@ -254,6 +254,33 @@ exports.getMemberData = async (req, res) => {
     }
 };
 
+exports.getMemberName = async (req, res) => {
+    const username = req.params.username;
+    if (!username) {
+        return res.status(400).json({
+            message: 'username is required',
+            status: false
+        });
+    }
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const [results] = await connection.query('SELECT name FROM customers WHERE user_name = ?', [username]);
+
+        res.status(200).json({
+            message: 'success',
+            status: true,
+            data: results[0]
+        });
+    } catch (err) {
+        console.error('Error executing query:', err);
+        res.status(500).send('Error executing query');
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
 exports.getUplineData = async (req, res) => {
     const { username } = req.params;
     if (!username) {
@@ -308,4 +335,22 @@ exports.getDownlineData = async (req, res) => {
         if (connection) connection.release();
     }
 };
+
+exports.getUserEwallet = async (req, res) => {
+    const { username } = req.params;
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const [results] = await connection.query(
+            'SELECT * FROM ewallet WHERE customer_username = ?', [username]
+        );
+        return res.status(200).json({message: 'success', status: true, data: results})
+    }
+    catch(err) {
+        console.log(err)
+        return res.status(500).json({message: err.message})
+    } finally {
+        if (connection) connection.release();
+    }
+}
 

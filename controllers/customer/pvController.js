@@ -1,4 +1,5 @@
 const pool = require('../../mysql_db');
+const axios = require('axios');
 
 const query = (sql, params) => {
     return pool.query(sql, params);
@@ -6,6 +7,18 @@ const query = (sql, params) => {
 
 function generateCode(length) {
     return Math.random().toString(36).substring(2, 2 + length).toUpperCase();
+}
+
+async function generateCodeBonus() {
+    const { data } = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_bonus/2')
+    if (data) return data
+    else return generateCode(6)
+}
+
+async function generateCodePv() {
+    const { data } = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_pv')
+    if (data) return data
+    else return generateCode(6)
 }
 
 exports.getUserJangPv = async (req, res) => {
@@ -79,7 +92,7 @@ exports.jangPvActive = async (req, res) => {
 
         console.log('dataUser2', dataUser);
 
-        const code = generateCode(6); // Generating a unique code
+        const code = generateCodePv(); // Generating a unique code
         //console.log(code);
         const jangPv = {
             code,
@@ -246,7 +259,7 @@ const runBonusActive = async (pvData) => {
                         qualification: qualification_id,
                         g: i,
                         pv: parseFloat(jang_pv.pv),
-                        code_bonus: generateCode(6),
+                        code_bonus: generateCodeBonus(),
                         percen: 10
                     };
                     //console.log('bonus_active', bonus_active);
@@ -463,7 +476,7 @@ exports.jangPvUpgrade = async (req, res) => {
                 qualification: qualificationId,
                 g: i,
                 pv: pv_upgrad_input,
-                code_bonus: generateCode(6),
+                code_bonus: generateCodeBonus(),
                 type: 'jangpv',
                 percen: bonusPercent,
                 bonus: qualificationId === 'CM' ? 0 : bonusAfterTax,
@@ -612,7 +625,7 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
         // Handle VVIP specific logic
         if (position_update === 'VVIP') {
             const jangPv = {
-                code: generateCode(),
+                code: generateCodePv(),
                 customer_username: user_action.user_name,
                 to_customer_username: input_user_name_upgrad,
                 old_position: data_user.qualification_id,
@@ -796,7 +809,7 @@ const RunBonusCashBack = async (code) => {
                         g: i,
                         percen: 10,
                         pv: jangPv[0].pv,
-                        code_bonus: generateCode(9),
+                        code_bonus: generateCodeBonus(),
                     };
 
                     arrUser[i] = {
@@ -942,7 +955,7 @@ exports.jangPvCashBack = async (req, res) => {
         const [customerUpdates] = await query(customerUpdateQuery, [user.id]);
         const customerUpdate = customerUpdates[0];
 
-        const code = generateCode(6);  // Replace with your code generation logic
+        const code = generateCodeBonus();  // Replace with your code generation logic
 
         const bonusPercenQuery = `
             SELECT bonus_jang_pv 

@@ -10,15 +10,29 @@ function generateCode(length) {
 }
 
 async function generateCodeBonus() {
-    const { data } = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_bonus/2')
-    if (data) return data
-    else return generateCode(6)
+    try {
+        //const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_bonus/2')
+        const {data} = await axios.get('https://maruayduaykan.com/api/db_code_bonus/2')
+        if (data) return data
+        else return generateCode(6)
+    }
+    catch(err) {
+        console.log(err)
+        return generateCode(6)
+    }
 }
 
 async function generateCodePv() {
-    const { data } = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_pv')
-    if (data) return data
-    else return generateCode(6)
+    try {
+        //const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_pv')
+        const {data} = await axios.get('https://maruayduaykan.com/api/db_code_pv')
+        if (data) return data
+        else return generateCode(6)
+    }
+    catch(err) {
+        console.log(err)
+        return generateCode(6)
+    }
 }
 
 exports.getUserJangPv = async (req, res) => {
@@ -63,7 +77,7 @@ exports.jangPvActive = async (req, res) => {
         console.log('dataUser', dataUser);
         if (!dataUser) {
             await query('ROLLBACK');
-            return res.status(400).json({ error: 'เแจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง 1' });
+            return res.status(400).json({ error: 'แจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง 1' });
         }
 
         const qualificationId = dataUser.qualification_id || 'CM';
@@ -92,10 +106,10 @@ exports.jangPvActive = async (req, res) => {
 
         console.log('dataUser2', dataUser);
 
-        const code = generateCodePv(); // Generating a unique code
-        //console.log(code);
+        const code = await generateCodePv(); // Generating a unique code
+        console.log('code', code);
         const jangPv = {
-            code,
+            code: code,
             customer_username: currentUser.user_name,
             to_customer_username: dataUser.user_name,
             position: qualificationId,
@@ -132,8 +146,8 @@ exports.jangPvActive = async (req, res) => {
             tax_total: (parseFloat(jangPv.wallet) / (1 - 0.03)) - parseFloat(jangPv.wallet),
             bonus_full: parseFloat(jangPv.wallet) / (1 - 0.03),
             amt: parseFloat(jangPv.wallet),
-            old_balance: parseFloat(walletG.ewallet || 0),
-            balance: parseFloat(walletG.ewallet || 0) + parseFloat(jangPv.wallet),
+            old_balance: parseFloat(walletG.ewallet || 0) >= 9999999.99 ? 9999999.99 : parseFloat(walletG.ewallet || 0),
+            balance: parseFloat(walletG.ewallet || 0) + parseFloat(jangPv.wallet) >= 9999999.99 ? 9999999.99 : parseFloat(walletG.ewallet || 0) + parseFloat(jangPv.wallet),
             note_orther: 'สินสุดวันที่ ' + jangPv.date_active,
             type: 7,
             receive_date: new Date(),
@@ -176,6 +190,7 @@ exports.jangPvActive = async (req, res) => {
 
     } catch (error) {
         await query('ROLLBACK');
+        console.log(error);
         return res.status(500).json({ error: error.message });
     }
 };
@@ -259,7 +274,7 @@ const runBonusActive = async (pvData) => {
                         qualification: qualification_id,
                         g: i,
                         pv: parseFloat(jang_pv.pv),
-                        code_bonus: generateCodeBonus(),
+                        code_bonus: await generateCodeBonus(),
                         percen: 10
                     };
                     //console.log('bonus_active', bonus_active);
@@ -476,7 +491,7 @@ exports.jangPvUpgrade = async (req, res) => {
                 qualification: qualificationId,
                 g: i,
                 pv: pv_upgrad_input,
-                code_bonus: generateCodeBonus(),
+                code_bonus: await generateCodeBonus(),
                 type: 'jangpv',
                 percen: bonusPercent,
                 bonus: qualificationId === 'CM' ? 0 : bonusAfterTax,
@@ -625,7 +640,7 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
         // Handle VVIP specific logic
         if (position_update === 'VVIP') {
             const jangPv = {
-                code: generateCodePv(),
+                code: await generateCodePv(),
                 customer_username: user_action.user_name,
                 to_customer_username: input_user_name_upgrad,
                 old_position: data_user.qualification_id,
@@ -809,7 +824,7 @@ const RunBonusCashBack = async (code) => {
                         g: i,
                         percen: 10,
                         pv: jangPv[0].pv,
-                        code_bonus: generateCodeBonus(),
+                        code_bonus: await generateCodeBonus(),
                     };
 
                     arrUser[i] = {
@@ -955,7 +970,7 @@ exports.jangPvCashBack = async (req, res) => {
         const [customerUpdates] = await query(customerUpdateQuery, [user.id]);
         const customerUpdate = customerUpdates[0];
 
-        const code = generateCodeBonus();  // Replace with your code generation logic
+        const code = await generateCodeBonus();  // Replace with your code generation logic
 
         const bonusPercenQuery = `
             SELECT bonus_jang_pv 
@@ -1031,7 +1046,7 @@ exports.jangPvCashBack = async (req, res) => {
             await query('UPDATE customers SET ? WHERE id = ?', [customerUpdate, customerUpdate.id]);
             await query('UPDATE customers SET pv = ? WHERE id = ?', [pvBalance, activeUser.id]);
             await query('INSERT INTO jang_pv SET ?', jangPv);
-            await query('INSERT INTO eWallet SET ?', eWallet);
+            await query('INSERT INTO ewallet SET ?', eWallet);
 
             const runBonusCashBack = await RunBonusCashBack(code); // Implement this function based on the PHP code
             //console.log('code', code);
@@ -1074,7 +1089,7 @@ exports.jangPvCashBack = async (req, res) => {
                             status: 2
                         };
 
-                        await query('INSERT INTO eWallet SET ?', eWalletCashBack);
+                        await query('INSERT INTO ewallet SET ?', eWalletCashBack);
 
                         await query('UPDATE customers SET ewallet = ?, ewallet_use = ? WHERE id = ?', 
                             [walletGTotal, ewalletUseTotal + parseFloat(value.bonus), walletG.id]);
@@ -1092,6 +1107,7 @@ exports.jangPvCashBack = async (req, res) => {
             });
         } catch (error) {
             await query('ROLLBACK');
+            console.log(error)
             return res.status(500).send(error.message);
         }
     } else {

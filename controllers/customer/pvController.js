@@ -51,7 +51,8 @@ exports.getUserJangPv = async (req, res) => {
 
 exports.jangPvActive = async (req, res) => {
     const { input_user_name_active, pv_active, currentUser } = req.body;
-    console.log('request', req.body);
+    //console.log('request', req.body);
+    let codePv = await generateCodePv();
     try {
         // Begin transaction
         await query('START TRANSACTION');
@@ -106,8 +107,8 @@ exports.jangPvActive = async (req, res) => {
 
         console.log('dataUser2', dataUser);
 
-        const code = await generateCodePv(); // Generating a unique code
-        console.log('code', code);
+        const code = codePv; // Generating a unique code
+        //console.log('code', code);
         const jangPv = {
             code: code,
             customer_username: currentUser.user_name,
@@ -197,7 +198,7 @@ exports.jangPvActive = async (req, res) => {
 
 const runBonusActive = async (pvData) => {
     const { code, customer, to_customer_username } = pvData;
-
+    let codeBonus = await generateCodeBonus()
     try {
         // Fetch jang_pv data
         const [jang_pvs] = await query(
@@ -274,7 +275,7 @@ const runBonusActive = async (pvData) => {
                         qualification: qualification_id,
                         g: i,
                         pv: parseFloat(jang_pv.pv),
-                        code_bonus: await generateCodeBonus(),
+                        code_bonus: codeBonus,
                         percen: 10
                     };
                     //console.log('bonus_active', bonus_active);
@@ -323,6 +324,7 @@ const runBonusActive = async (pvData) => {
 
 exports.jangPvUpgrade = async (req, res) => {
     let { user_name, input_user_name_upgrad, pv_upgrad_input } = req.body;
+    const codeBonus = await generateCodeBonus();
     try {
         const userActionQuery = `
             SELECT ewallet, id, user_name, ewallet_use, pv, bonus_total, pv_upgrad, name, last_name 
@@ -491,7 +493,7 @@ exports.jangPvUpgrade = async (req, res) => {
                 qualification: qualificationId,
                 g: i,
                 pv: pv_upgrad_input,
-                code_bonus: await generateCodeBonus(),
+                code_bonus: codeBonus,
                 type: 'jangpv',
                 percen: bonusPercent,
                 bonus: qualificationId === 'CM' ? 0 : bonusAfterTax,
@@ -547,6 +549,7 @@ exports.jangPvUpgrade = async (req, res) => {
 };
 
 const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_action, data_user, position_update, pv_balance, pv_upgrad_total) => {
+    let codePv = await generateCodePv();
     try {
         await query('START TRANSACTION');
 
@@ -640,7 +643,7 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
         // Handle VVIP specific logic
         if (position_update === 'VVIP') {
             const jangPv = {
-                code: await generateCodePv(),
+                code: codePv,
                 customer_username: user_action.user_name,
                 to_customer_username: input_user_name_upgrad,
                 old_position: data_user.qualification_id,
@@ -723,7 +726,7 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
 const RunBonusCashBack = async (code) => {
     const connection = await pool.getConnection();
     await connection.beginTransaction();
-
+    let codeBonus = await generateCodeBonus()
     try {
         // Get the jang_pv record
         const [jangPv] = await connection.query('SELECT * FROM jang_pv WHERE code = ?', [code]);
@@ -824,7 +827,7 @@ const RunBonusCashBack = async (code) => {
                         g: i,
                         percen: 10,
                         pv: jangPv[0].pv,
-                        code_bonus: await generateCodeBonus(),
+                        code_bonus: codeBonus,
                     };
 
                     arrUser[i] = {
@@ -924,7 +927,7 @@ const RunBonusCashBack = async (code) => {
 
 exports.jangPvCashBack = async (req, res) => {
     const { active_user_name, active_user_id, user_name, pv, type } = req.body;
-
+    let codeBonus = await generateCodeBonus();
     if (type == 2) {
         if (pv <= 0) {
             return res.status(400).send('ไม่สามารถแจง 0 PV ได้');
@@ -970,7 +973,7 @@ exports.jangPvCashBack = async (req, res) => {
         const [customerUpdates] = await query(customerUpdateQuery, [user.id]);
         const customerUpdate = customerUpdates[0];
 
-        const code = await generateCodeBonus();  // Replace with your code generation logic
+        const code = codeBonus;  // Replace with your code generation logic
 
         const bonusPercenQuery = `
             SELECT bonus_jang_pv 

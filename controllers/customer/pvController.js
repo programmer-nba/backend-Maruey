@@ -1,6 +1,10 @@
 const pool = require('../../mysql_db');
 const axios = require('axios');
 
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 const query = (sql, params) => {
     return pool.query(sql, params);
 };
@@ -11,26 +15,26 @@ function generateCode(length) {
 
 async function generateCodeBonus() {
     try {
-        //const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_bonus/2')
-        const {data} = await axios.get('https://maruayduaykan.com/api/db_code_bonus/2')
+        const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_bonus/2')
+        //const {data} = await axios.get('https://maruayduaykan.com/api/db_code_bonus/2')
         if (data) return data
         else return generateCode(6)
     }
     catch(err) {
-        console.log(err)
+        //console.log(err)
         return generateCode(6)
     }
 }
 
 async function generateCodePv() {
     try {
-        //const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_pv')
-        const {data} = await axios.get('https://maruayduaykan.com/api/db_code_pv')
+        const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_pv')
+        //const {data} = await axios.get('https://maruayduaykan.com/api/db_code_pv')
         if (data) return data
         else return generateCode(6)
     }
     catch(err) {
-        console.log(err)
+        //console.log(err)
         return generateCode(6)
     }
 }
@@ -51,9 +55,11 @@ exports.getUserJangPv = async (req, res) => {
 
 exports.jangPvActive = async (req, res) => {
     const { input_user_name_active, pv_active, currentUser } = req.body;
-    //console.log('request', req.body);
-    let codePv = await generateCodePv();
     try {
+        await delay(3000);
+
+        let codePv = await generateCodePv();
+        console.log('codePv', codePv);
         // Begin transaction
         await query('START TRANSACTION');
 
@@ -75,13 +81,13 @@ exports.jangPvActive = async (req, res) => {
         );
 
         let dataUser = dataUsers[0];
-        console.log('dataUser', dataUser);
+        //console.log('dataUser', dataUser);
         if (!dataUser) {
             await query('ROLLBACK');
             return res.status(400).json({ error: 'แจง PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง 1' });
         }
 
-        const qualificationId = dataUser.qualification_id || 'CM';
+        const qualificationId = dataUser.qualification_id || 'MC';
         const pvBalance = parseFloat(walletG.pv) - pv_active;
 
         if (pvBalance < 0) {
@@ -105,12 +111,12 @@ exports.jangPvActive = async (req, res) => {
             dataUser.expire_date_bonus = expireDateBonus.toISOString().split('T')[0];
         }
 
-        console.log('dataUser2', dataUser);
+        //console.log('dataUser2', dataUser);
 
-        const code = codePv; // Generating a unique code
+        //const code = codePv; // Generating a unique code
         //console.log('code', code);
         const jangPv = {
-            code: code,
+            code: codePv,
             customer_username: currentUser.user_name,
             to_customer_username: dataUser.user_name,
             position: qualificationId,
@@ -126,7 +132,7 @@ exports.jangPvActive = async (req, res) => {
 
         //console.log('jangPv', jangPv);
 
-        const [existingJangPv] = await query('SELECT * FROM jang_pv WHERE code = ?', [code]);
+        const [existingJangPv] = await query('SELECT * FROM jang_pv WHERE code = ?', [codePv]);
         //console.log(existingJangPv);
         if (existingJangPv.length) {
             await query('ROLLBACK');
@@ -139,7 +145,7 @@ exports.jangPvActive = async (req, res) => {
         );
 
         const eWallet = {
-            transaction_code: code,
+            transaction_code: codePv,
             customers_id_fk: currentUser.id,
             customer_username: currentUser.user_name,
             customers_id_receive: dataUser.id,
@@ -157,17 +163,17 @@ exports.jangPvActive = async (req, res) => {
         };
         //console.log('eWallet', eWallet);
         
-        console.log('pvBalance', pvBalance)
-        console.log('ewallet', eWallet.balance)
-        console.log('ewallet_use', parseFloat(walletG.ewallet_use || 0) + parseFloat(jangPv.wallet))
-        console.log('bonus_total', parseFloat(walletG.bonus_total || 0) + parseFloat(jangPv.wallet))
-        console.log('from', walletG.id)
+        //console.log('pvBalance', pvBalance)
+        //console.log('ewallet', eWallet.balance)
+        //console.log('ewallet_use', parseFloat(walletG.ewallet_use || 0) + parseFloat(jangPv.wallet))
+        //console.log('bonus_total', parseFloat(walletG.bonus_total || 0) + parseFloat(jangPv.wallet))
+        //console.log('from', walletG.id)
         await query('UPDATE customers SET pv = ?, ewallet = ?, ewallet_use = ?, bonus_total = ? WHERE id = ?',
             [pvBalance, eWallet.balance, parseFloat(walletG.ewallet_use || 0) + parseFloat(jangPv.wallet), parseFloat(walletG.bonus_total || 0) + parseFloat(jangPv.wallet), walletG.id]);
 
-        console.log('to_id', dataUser.id)
-        console.log('expire_date', dataUser.expire_date)
-        console.log('expire_date_bonus', dataUser.expire_date_bonus)
+        //console.log('to_id', dataUser.id)
+        //console.log('expire_date', dataUser.expire_date)
+        //console.log('expire_date_bonus', dataUser.expire_date_bonus)
         await query('UPDATE customers SET expire_date = ?, expire_date_bonus = ? WHERE id = ?',
             [dataUser.expire_date, dataUser.expire_date_bonus, dataUser.id]);
 
@@ -177,11 +183,11 @@ exports.jangPvActive = async (req, res) => {
         await query('COMMIT');
 
         const pvData = { 
-            code: code, 
+            code: codePv, 
             customer: currentUser.user_name, 
             to_customer_username : dataUser.user_name
         }
-        console.log("runBonusActive", pvData);
+        //console.log("runBonusActive", pvData);
         const runBonus = await runBonusActive(pvData);
         if (!runBonus) {
             return res.status(400).json({ error: 'รันโบนัส PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง 3' });
@@ -191,15 +197,19 @@ exports.jangPvActive = async (req, res) => {
 
     } catch (error) {
         await query('ROLLBACK');
-        console.log(error);
+        //console.log(error);
         return res.status(500).json({ error: error.message });
     }
 };
 
 const runBonusActive = async (pvData) => {
     const { code, customer, to_customer_username } = pvData;
-    let codeBonus = await generateCodeBonus()
     try {
+        console.log('start runbonus active')
+        await delay(3000); 
+
+        let codeBonus = await generateCodeBonus()
+        console.log('codeBonus', codeBonus)
         // Fetch jang_pv data
         const [jang_pvs] = await query(
             'SELECT * FROM jang_pv WHERE code = ? AND customer_username = ? AND to_customer_username = ?',
@@ -229,15 +239,18 @@ const runBonusActive = async (pvData) => {
         const report_bonus_active = [];
         const arr_user = [];
 
+        console.log('starting for loop 7 times')
         for (let i = 1; i <= 7; i++) {
             let x = 'start';
-
+            console.log('loop : ', i)
             const [data_users] = await query(
                 'SELECT name, last_name, introduce_id, user_name, upline_id, qualification_id, expire_date FROM customers WHERE user_name = ?',
                 [customer_username]
             );
 
             let data_user = data_users[0];
+            console.log('user-' + i + ' : ', data_user.user_name)
+            console.log('next : ', data_user.introduce_id)
             if (!data_user) {
                 if (report_bonus_active.length > 0) {
                     await query('INSERT INTO report_bonus_active SET ?', report_bonus_active[0]); // Insert only the first object
@@ -246,7 +259,8 @@ const runBonusActive = async (pvData) => {
             }
 
             while (x === 'start') {
-                if (!data_user.name || data_user.qualification_id === 'CM') {
+                if (!data_user.name || data_user.qualification_id === 'MC') {
+                    //console.log('track : 262')
                     customer_username = data_user.introduce_id;
 
                     const [next_users] = await query(
@@ -258,11 +272,16 @@ const runBonusActive = async (pvData) => {
                     if (!next_user) {
                         x = 'stop';
                         break;
+                    } else {
+                        data_user = next_user;
+                        console.log('skip_to : ', next_user.user_name)
+                        continue;
                     }
                 } else {
-                    const qualification_id = data_user.qualification_id || 'CM';
+                    console.log('start : ', data_user.user_name)
+                    const qualification_id = data_user.qualification_id || 'MC';
                     let introduce_id = await query('SELECT introduce_id FROM customers WHERE user_name = ?', [jang_pv.to_customer_username])
-                    console.log('intro', introduce_id[0][0]);
+                    //console.log('intro', introduce_id[0][0]);
                     const bonus_active = {
                         user_name: jang_pv.to_customer_username,
                         name: name_g1,
@@ -289,10 +308,10 @@ const runBonusActive = async (pvData) => {
                         bonus_percen: 10,
                         pv: parseFloat(jang_pv.pv),
                         position: qualification_id,
-                        bonus: qualification_id === 'CM' || (i >= 3 && qualification_id === 'MB') || (i >= 5 && qualification_id === 'MO' || qualification_id === 'VIP') ? 0 : wallet_total - tax_total
+                        bonus: qualification_id === 'MC' || (i >= 3 && qualification_id === 'MB') || (i >= 5 && qualification_id === 'MO' || qualification_id === 'VIP') ? 0 : wallet_total - tax_total
                     };
 
-                    console.log('arr_user', arr_user[i]);
+                    console.log('arr-' + i + ' : ', arr_user[i].bonus);
 
                     bonus_active.tax_total = arr_user[i].bonus === 0 ? 0 : tax_total;
                     bonus_active.bonus_full = arr_user[i].bonus === 0 ? 0 : wallet_total;
@@ -303,6 +322,7 @@ const runBonusActive = async (pvData) => {
                     customer_username = data_user.introduce_id;
 
                     x = 'stop';
+                    console.log('end----------------------')
                     break;
                 }
             }
@@ -317,15 +337,17 @@ const runBonusActive = async (pvData) => {
 
         return true;
     } catch (err) {
-        console.error(err);
+        //console.error(err);
         return false;
     }
 };
 
 exports.jangPvUpgrade = async (req, res) => {
     let { user_name, input_user_name_upgrad, pv_upgrad_input } = req.body;
-    const codeBonus = await generateCodeBonus();
     try {
+        await delay(3000);
+
+        const codeBonus = await generateCodeBonus();
         const userActionQuery = `
             SELECT ewallet, id, user_name, ewallet_use, pv, bonus_total, pv_upgrad, name, last_name 
             FROM customers 
@@ -377,7 +399,7 @@ exports.jangPvUpgrade = async (req, res) => {
         }
         console.log('pvBalance', pvBalance);
 
-        let qualificationId = dataUser.qualification_id || 'CM';
+        let qualificationId = dataUser.qualification_id || 'MC';
         let pvUpgradTotal = parseFloat(dataUser.pv_upgrad) + pv_upgrad_input;
         let expireDate = dataUser.expire_date;
         let positionUpdate = dataUser.qualification_id;
@@ -389,7 +411,7 @@ exports.jangPvUpgrade = async (req, res) => {
             return newExpireDate.toISOString().split('T')[0];
         };
 
-        if (qualificationId === 'CM') {
+        if (qualificationId === 'MC') {
             if (pvUpgradTotal >= 20 && pvUpgradTotal < 400) {
                 expireDate = updateExpireDate();
                 positionUpdate = 'MB';
@@ -466,7 +488,7 @@ exports.jangPvUpgrade = async (req, res) => {
                 break;
             }
 
-            qualificationId = runDataUser.qualification_id || 'CM';
+            qualificationId = runDataUser.qualification_id || 'MC';
             let bonusPercent = 0;
 
             if (i === 1) {
@@ -496,7 +518,7 @@ exports.jangPvUpgrade = async (req, res) => {
                 code_bonus: codeBonus,
                 type: 'jangpv',
                 percen: bonusPercent,
-                bonus: qualificationId === 'CM' ? 0 : bonusAfterTax,
+                bonus: qualificationId === 'MC' ? 0 : bonusAfterTax,
                 bonus_full: walletTotal,
                 tax_total: walletTotal * 0.03,
             });
@@ -549,8 +571,11 @@ exports.jangPvUpgrade = async (req, res) => {
 };
 
 const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_action, data_user, position_update, pv_balance, pv_upgrad_total) => {
-    let codePv = await generateCodePv();
+    
     try {
+        await delay(3000);
+
+        let codePv = await generateCodePv();
         await query('START TRANSACTION');
 
         // Fetch report_bonus_register records
@@ -726,8 +751,10 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
 const RunBonusCashBack = async (code) => {
     const connection = await pool.getConnection();
     await connection.beginTransaction();
-    let codeBonus = await generateCodeBonus()
     try {
+        await delay(3000);
+
+        let codeBonus = await generateCodeBonus()
         // Get the jang_pv record
         const [jangPv] = await connection.query('SELECT * FROM jang_pv WHERE code = ?', [code]);
         if (!jangPv.length) {
@@ -815,7 +842,7 @@ const RunBonusCashBack = async (code) => {
                         WHERE user_name = ?
                     `, [customerUsername]);
                 } else {
-                    const qualificationId = dataUser[0].qualification_id || 'CM';
+                    const qualificationId = dataUser[0].qualification_id || 'MC';
 
                     reportBonusCashback[i] = {
                         user_name: jangPv[0].to_customer_username,
@@ -844,12 +871,12 @@ const RunBonusCashBack = async (code) => {
                     let taxTotal = walletTotal * 3 / 100;
                     let bonusFull = walletTotal;
 
-                    if (i <= 2 || qualificationId === 'CM') {
+                    if (i <= 2 || qualificationId === 'MC') {
                         reportBonusCashback[i].tax_total = taxTotal;
                         reportBonusCashback[i].bonus_full = bonusFull;
                         reportBonusCashback[i].bonus = bonus - taxTotal;
                     } else if (i >= 3 && i <= 4) {
-                        if (qualificationId === 'CM' || qualificationId === 'MB') {
+                        if (qualificationId === 'MC' || qualificationId === 'MB') {
                             bonus = taxTotal = bonusFull = 0;
                         } else {
                             reportBonusCashback[i].tax_total = taxTotal;
@@ -857,7 +884,7 @@ const RunBonusCashBack = async (code) => {
                             reportBonusCashback[i].bonus = bonus - taxTotal;
                         }
                     } else {
-                        if (['CM', 'MB', 'MO', 'VIP'].includes(qualificationId) && [5, 6, 7].includes(i)) {
+                        if (['MC', 'MB', 'MO', 'VIP'].includes(qualificationId) && [5, 6, 7].includes(i)) {
                             bonus = taxTotal = bonusFull = 0;
                         } else {
                             reportBonusCashback[i].tax_total = taxTotal;
@@ -927,6 +954,7 @@ const RunBonusCashBack = async (code) => {
 
 exports.jangPvCashBack = async (req, res) => {
     const { active_user_name, active_user_id, user_name, pv, type } = req.body;
+    await delay(3000);
     let codeBonus = await generateCodeBonus();
     if (type == 2) {
         if (pv <= 0) {

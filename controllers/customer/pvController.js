@@ -56,7 +56,7 @@ exports.getUserJangPv = async (req, res) => {
 exports.jangPvActive = async (req, res) => {
     const { input_user_name_active, pv_active, currentUser } = req.body;
     try {
-        await delay(3000);
+        await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000);
 
         let codePv = await generateCodePv();
         console.log('codePv', codePv);
@@ -206,7 +206,7 @@ const runBonusActive = async (pvData) => {
     const { code, customer, to_customer_username } = pvData;
     try {
         console.log('start runbonus active')
-        await delay(3000); 
+        await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000); 
 
         let codeBonus = await generateCodeBonus()
         console.log('codeBonus', codeBonus)
@@ -345,7 +345,7 @@ const runBonusActive = async (pvData) => {
 exports.jangPvUpgrade = async (req, res) => {
     let { user_name, input_user_name_upgrad, pv_upgrad_input } = req.body;
     try {
-        await delay(3000);
+        await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000);
 
         const codeBonus = await generateCodeBonus();
         const userActionQuery = `
@@ -573,7 +573,7 @@ exports.jangPvUpgrade = async (req, res) => {
 const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_action, data_user, position_update, pv_balance, pv_upgrad_total) => {
     
     try {
-        await delay(3000);
+        await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000);
 
         let codePv = await generateCodePv();
         await query('START TRANSACTION');
@@ -752,7 +752,7 @@ const RunBonusCashBack = async (code) => {
     const connection = await pool.getConnection();
     await connection.beginTransaction();
     try {
-        await delay(3000);
+        await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000);
 
         let codeBonus = await generateCodeBonus()
         // Get the jang_pv record
@@ -954,7 +954,7 @@ const RunBonusCashBack = async (code) => {
 
 exports.jangPvCashBack = async (req, res) => {
     const { active_user_name, active_user_id, user_name, pv, type } = req.body;
-    await delay(3000);
+    await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000);
     let codeBonus = await generateCodeBonus();
     if (type == 2) {
         if (pv <= 0) {

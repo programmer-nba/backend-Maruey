@@ -17,6 +17,7 @@ mongoose.connect(urldatabase).then(()=>console.log("connect")).catch((err)=>cons
 
 app.get('/v1/Backend-Maruey/downloads/app/test', (req, res) => {
     const filePath = path.join(__dirname, 'downloads', 'app-maruey-test.apk');
+    console.log(filePath)
     res.sendFile(filePath);
   });
 

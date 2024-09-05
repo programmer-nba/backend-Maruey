@@ -354,3 +354,31 @@ exports.getUserEwallet = async (req, res) => {
     }
 }
 
+exports.updateAddress = async (req, res) => {
+    const { user_id } = req.params;
+    if (!user_id) {
+        return res.status(400).json({
+            message: 'user_id is required',
+            status: false
+        });
+    }
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const [results] = await connection.query('UPDATE user_name, upline_id, type_upline, name FROM customers WHERE id = ?', [user_id]);
+
+        res.status(200).json({
+            message: 'success',
+            status: true,
+            datas: results,
+            data: results[0]
+        });
+    } catch (err) {
+        console.error('Error executing query:', err);
+        res.status(500).send('Error executing query');
+    } finally {
+        if (connection) connection.release();
+    }
+};
+

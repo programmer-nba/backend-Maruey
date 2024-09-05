@@ -13,5 +13,6 @@ router.get('/member-name/:username', Customer.getMemberName);
 router.get('/member/:username', Customer.getMemberData);
 router.get('/upline/:username', Customer.getUplineData);
 router.get('/downline/:username', Customer.getDownlineData);
+router.put('/address-mlm/:user_id', Customer.updateAddress)
 
 module.exports = router;

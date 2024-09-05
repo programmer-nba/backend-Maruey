@@ -15,12 +15,12 @@ const urldatabase =process.env.ATLAS_MONGODB
 mongoose.Promise = global.Promise
 mongoose.connect(urldatabase).then(()=>console.log("connect")).catch((err)=>console.error(err))
 
-app.get('/downloads/app/test', (req, res) => {
+app.get('/v1/Backend-Maruey/downloads/app/test', (req, res) => {
     const filePath = path.join(__dirname, 'downloads', 'app-maruey-test.apk');
     res.sendFile(filePath);
   });
 
-app.get('/downloads/app/release', (req, res) => {
+app.get('/v1/Backend-Maruey/downloads/app/release', (req, res) => {
     const filePath = path.join(__dirname, 'downloads', 'app-maruey.apk');
     res.sendFile(filePath);
   });

@@ -17,7 +17,7 @@ exports.getUserAddress = async (req, res) => {
         res.status(200).json({
             message: 'success',
             status: true,
-            data: results
+            data: results.reverse()
         });
     } catch (err) {
         console.error('Error executing query:', err);
@@ -121,71 +121,6 @@ exports.getUserAddressDelivery = async (req, res) => {
     try {
         connection = await pool.getConnection();
         const [results] = await connection.query('SELECT * FROM customers_address_delivery WHERE customers_id = ?', [customerId]);
-
-        res.status(200).json({
-            message: 'success',
-            status: true,
-            data: results
-        });
-    } catch (err) {
-        console.error('Error executing query:', err);
-        res.status(500).send('Error executing query');
-    } finally {
-        if (connection) connection.release();
-    }
-};
-
-exports.upsertUserAddressDelivery = async (req, res) => {
-    const {
-        customers_id,
-        address,
-        moo,
-        soi,
-        road,
-        tambon,
-        province,
-        zipcode,
-        phone,
-        status // 1, 2
-    } = req.body;
-
-    if (!customers_id || !status) {
-        return res.status(400).json({
-            message: 'customers_id and status fields are required',
-            status: false
-        });
-    }
-
-    const query = `
-        INSERT INTO customers_address_delivery (customers_id, address, moo, soi, road, tambon, province, zipcode, phone, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-            address = VALUES(address),
-            moo = VALUES(moo),
-            soi = VALUES(soi),
-            road = VALUES(road),
-            tambon = VALUES(tambon),
-            province = VALUES(province),
-            zipcode = VALUES(zipcode),
-            phone = VALUES(phone),
-            status = VALUES(status)
-    `;
-
-    let connection;
-    try {
-        connection = await pool.getConnection();
-        const [results] = await connection.query(query, [
-            customers_id,
-            address,
-            moo,
-            soi,
-            road,
-            tambon,
-            province,
-            zipcode,
-            phone,
-            status
-        ]);
 
         res.status(200).json({
             message: 'success',
@@ -373,6 +308,136 @@ exports.updateAddress = async (req, res) => {
             status: true,
             datas: results,
             data: results[0]
+        });
+    } catch (err) {
+        console.error('Error executing query:', err);
+        res.status(500).send('Error executing query');
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+exports.upsertUserAddressCard = async (req, res) => {
+    const {
+        customers_id,
+        address,
+        moo,
+        soi,
+        road,
+        tambon,
+        district,
+        province,
+        zipcode,
+        phone
+    } = req.body;
+
+    if (!customers_id) {
+        return res.status(400).json({
+            message: 'customers_id and status fields are required',
+            status: false
+        });
+    }
+
+    const query = `
+        INSERT INTO customers_address_card (customers_id, address, moo, soi, road, tambon, province, district, zipcode, phone)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            address = VALUES(address),
+            moo = VALUES(moo),
+            soi = VALUES(soi),
+            road = VALUES(road),
+            tambon = VALUES(tambon),
+            district = VALUES(district),
+            province = VALUES(province),
+            zipcode = VALUES(zipcode),
+            phone = VALUES(phone)
+    `;
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const [results] = await connection.query(query, [
+            customers_id,
+            address,
+            moo,
+            soi,
+            road,
+            tambon,
+            province,
+            district,
+            zipcode,
+            phone
+        ]);
+
+        res.status(200).json({
+            message: 'success',
+            status: true,
+            data: results
+        });
+    } catch (err) {
+        console.error('Error executing query:', err);
+        res.status(500).send('Error executing query');
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+exports.upsertUserAddressDelivery = async (req, res) => {
+    const {
+        customers_id,
+        address,
+        moo,
+        soi,
+        road,
+        tambon,
+        district,
+        province,
+        zipcode,
+        phone
+    } = req.body;
+
+    if (!customers_id) {
+        return res.status(400).json({
+            message: 'customers_id and status fields are required',
+            status: false
+        });
+    }
+
+    const query = `
+        INSERT INTO customers_address_delivery (customers_id, address, moo, soi, road, tambon, province, district, zipcode, phone)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            address = VALUES(address),
+            moo = VALUES(moo),
+            soi = VALUES(soi),
+            road = VALUES(road),
+            tambon = VALUES(tambon),
+            district = VALUES(district),
+            province = VALUES(province),
+            zipcode = VALUES(zipcode),
+            phone = VALUES(phone)
+    `;
+
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const [results] = await connection.query(query, [
+            customers_id,
+            address,
+            moo,
+            soi,
+            road,
+            tambon,
+            province,
+            district,
+            zipcode,
+            phone
+        ]);
+
+        res.status(200).json({
+            message: 'success',
+            status: true,
+            data: results
         });
     } catch (err) {
         console.error('Error executing query:', err);

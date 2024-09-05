@@ -15,6 +15,15 @@ const urldatabase =process.env.ATLAS_MONGODB
 mongoose.Promise = global.Promise
 mongoose.connect(urldatabase).then(()=>console.log("connect")).catch((err)=>console.error(err))
 
+app.get('/downloads/app/test', (req, res) => {
+    const filePath = path.join(__dirname, 'downloads', 'app-maruey-test.apk');
+    res.sendFile(filePath);
+  });
+
+app.get('/downloads/app/release', (req, res) => {
+    const filePath = path.join(__dirname, 'downloads', 'app-maruey.apk');
+    res.sendFile(filePath);
+  });
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');

@@ -9,11 +9,31 @@ const mongoose = require('mongoose')
 process.env.TZ='UTC'
 var app = express();
 //ตัวแปรเก็บข้อมูล
+app.use(cors())
 
 //เชื่อมdatabase
 const urldatabase =process.env.ATLAS_MONGODB
 mongoose.Promise = global.Promise
 mongoose.connect(urldatabase).then(()=>console.log("connect")).catch((err)=>console.error(err))
+
+app.get('/v1/Backend-Maruey/ping', (req, res) => {
+  return res.status(200).json({
+    status: true,
+    now: new Date(),
+  })
+});
+
+app.get('/v1/Backend-Maruey/version', (req, res) => {
+  const last_version = "2.1"
+  const current_version = "2.2"
+  const update = "07-09-2024"
+  return res.status(200).json({
+    status: true,
+    last_version,
+    current_version,
+    updatedAt: update
+  })
+});
 
 app.get('/v1/Backend-Maruey/downloads/app/test', (req, res) => {
     const filePath = path.join(__dirname, 'downloads', 'app-maruey-test.apk');
@@ -34,7 +54,7 @@ app.use(express.json({limit: '300mb'}));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cors())
+
 //router
 const prefix = '/v1/Backend-Maruey'
 app.use(prefix+'/', require('./routes/index'));

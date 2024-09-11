@@ -188,7 +188,7 @@ exports.jangPvActive = async (req, res) => {
             customer: currentUser.user_name, 
             to_customer_username : dataUser.user_name
         }
-        //console.log("runBonusActive", pvData);
+        console.log("runBonusActive", pvData);
         const runBonus = await runBonusActive(pvData);
         if (!runBonus) {
             return res.status(400).json({ error: 'รันโบนัส PV ไม่สำเร็จกรุณาทำรายการไหม่อีกครั้ง 3' });
@@ -250,14 +250,15 @@ const runBonusActive = async (pvData) => {
             );
 
             let data_user = data_users[0];
-            console.log('user-' + i + ' : ', data_user.user_name)
-            console.log('next : ', data_user.introduce_id)
+            
             if (!data_user) {
                 if (report_bonus_active.length > 0) {
                     await query('INSERT INTO report_bonus_active SET ?', report_bonus_active[0]); // Insert only the first object
                 }
                 return true;
             }
+            console.log('user-' + i + ' : ', data_user.user_name)
+            console.log('next : ', data_user.introduce_id)
 
             while (x === 'start') {
                 if (!data_user.name || data_user.qualification_id === 'MC') {
@@ -338,7 +339,7 @@ const runBonusActive = async (pvData) => {
 
         return true;
     } catch (err) {
-        //console.error(err);
+        console.error(err);
         return false;
     }
 };

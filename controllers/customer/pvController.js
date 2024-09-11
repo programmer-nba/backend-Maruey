@@ -43,7 +43,7 @@ exports.getUserJangPv = async (req, res) => {
     const { username } = req.params;
     try {
         const [results] = await query(
-            'SELECT * FROM jang_pv WHERE customer_username = ?', [username]
+            'SELECT * FROM jang_pv WHERE customer_username = ? OR to_customer_username = ?', [username, username]
         );
         return res.status(200).json({message: 'success', status: true, data: results})
     }

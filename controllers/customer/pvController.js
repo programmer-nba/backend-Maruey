@@ -127,7 +127,8 @@ exports.jangPvActive = async (req, res) => {
             pv_balance: pvBalance,
             wallet: (pv_active * 1.5) - (pv_active * 1.5 * 0.03),
             type: '1',
-            status: 'Success'
+            status: 'Success',
+            type_app: 'app',
         };
 
         //console.log('jangPv', jangPv);
@@ -677,11 +678,12 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
                 pv: pv_upgrad_total,
                 pv_balance: pv_balance,
                 type: '3',
-                status: 'Success'
+                status: 'Success',
+                type_app: 'app',
             };
 
             const insertJangPvQuery = `
-                INSERT INTO jang_pv (code, customer_username, to_customer_username, old_position, position, pv_old, pv, pv_balance, type, status)
+                INSERT INTO jang_pv (code, customer_username, to_customer_username, old_position, position, pv_old, pv, pv_balance, type, status, type_app)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
             const jangPvValues = [
@@ -694,7 +696,8 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
                 jangPv.pv,
                 jangPv.pv_balance,
                 jangPv.type,
-                jangPv.status
+                jangPv.status,
+                jangPv.type_app
             ];
 
             await query(insertJangPvQuery, jangPvValues);
@@ -1033,7 +1036,8 @@ exports.jangPvCashBack = async (req, res) => {
             wallet_balance: walletBalance,
             note_orther: '',
             type: '2',
-            status: 'Success'
+            status: 'Success',
+            type_app: 'app'
         };
 
         if (parseFloat(user.pv_upgrad) >= 1200) {

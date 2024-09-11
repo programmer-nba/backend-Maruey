@@ -186,6 +186,7 @@ exports.jangPvActive = async (req, res) => {
         const pvData = { 
             code: codePv, 
             customer: currentUser.user_name, 
+            to_customer_id : dataUser.id,
             to_customer_username : dataUser.user_name
         }
         console.log("runBonusActive", pvData);
@@ -204,7 +205,7 @@ exports.jangPvActive = async (req, res) => {
 };
 
 const runBonusActive = async (pvData) => {
-    const { code, customer, to_customer_username } = pvData;
+    const { code, customer, to_customer_id, to_customer_username } = pvData;
     try {
         console.log('start runbonus active')
         await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000); 
@@ -245,7 +246,7 @@ const runBonusActive = async (pvData) => {
             let x = 'start';
             console.log('loop : ', i)
             const [data_users] = await query(
-                'SELECT name, last_name, introduce_id, user_name, upline_id, qualification_id, expire_date FROM customers WHERE user_name = ?',
+                'SELECT * FROM customers WHERE user_name = ?',
                 [customer_username]
             );
 
@@ -257,6 +258,7 @@ const runBonusActive = async (pvData) => {
                 }
                 return true;
             }
+            //console.log('current : ', data_user.user_name)
             console.log('user-' + i + ' : ', data_user.user_name)
             console.log('next : ', data_user.introduce_id)
 
@@ -266,7 +268,7 @@ const runBonusActive = async (pvData) => {
                     customer_username = data_user.introduce_id;
 
                     const [next_users] = await query(
-                        'SELECT name, last_name, introduce_id, user_name, upline_id, qualification_id, expire_date FROM customers WHERE user_name = ?',
+                        'SELECT * FROM customers WHERE user_name = ?',
                         [customer_username]
                     );
 
@@ -303,28 +305,41 @@ const runBonusActive = async (pvData) => {
 
                     const wallet_total = (parseFloat(jang_pv.pv) * 10) / 100;
                     const tax_total = (wallet_total * 3) / 100;
-
+                    //console.log('wallet_total : ', wallet_total);
+                    //console.log('tax_total : ', tax_total);
+                    //console.log('ewallet_old : ', data_user.ewallet);
+                    //console.log('ewallet_new : ', data_user.ewallet);
                     arr_user[i] = {
+                        id: data_user.id,
                         user_name: data_user.user_name,
                         lv: [i],
                         bonus_percen: 10,
                         pv: parseFloat(jang_pv.pv),
                         position: qualification_id,
-                        bonus: qualification_id === 'MC' || (i >= 3 && qualification_id === 'MB') || (i >= 5 && qualification_id === 'MO' || qualification_id === 'VIP') ? 0 : wallet_total - tax_total
+                        bonus: qualification_id === 'MC' || (i >= 3 && qualification_id === 'MB') || (i >= 5 && qualification_id === 'MO' || qualification_id === 'VIP') ? 0 : wallet_total - tax_total,
+                        ewallet_old: parseFloat(data_user.ewallet),
+                        ewallet_new: parseFloat(data_user.ewallet) + (wallet_total - tax_total),
+                        ewallet_use_old: parseFloat(data_user.ewallet_use)
                     };
 
-                    console.log('arr-' + i + ' : ', arr_user[i].bonus);
+                    //console.log('arr-' + i + ' : ', arr_user[i]);
 
                     bonus_active.tax_total = arr_user[i].bonus === 0 ? 0 : tax_total;
                     bonus_active.bonus_full = arr_user[i].bonus === 0 ? 0 : wallet_total;
                     bonus_active.bonus = arr_user[i].bonus;
+                    bonus_active.ewalet_old = arr_user[i].ewallet_old;
+                    bonus_active.ewalet_new = arr_user[i].ewallet_new;
+                    bonus_active.ewallet_use_old = arr_user[i].ewallet_use_old;
+                    bonus_active.ewallet_use_new = arr_user[i].ewallet_use_old + arr_user[i].bonus;
+                    bonus_active.date_active = new Date().toISOString().slice(0, 10);
+                    bonus_active.status = 'success';
 
                     report_bonus_active.push(bonus_active);
 
                     customer_username = data_user.introduce_id;
 
                     x = 'stop';
-                    console.log('end----------------------')
+                    //console.log('end----------------------')
                     break;
                 }
             }
@@ -334,6 +349,40 @@ const runBonusActive = async (pvData) => {
             // Insert each object in the report_bonus_active array individually
             for (const bonus of report_bonus_active) {
                 await query('INSERT INTO report_bonus_active SET ?', bonus);
+                //console.log('insert : ', bonus);
+                //console.log('arruser : ', arr_user.filter(p => p.user_name));
+                const user = arr_user.filter(p => p.user_name).find((x) => x.user_name === bonus.user_name_g);
+                //console.log('user : ', user);
+                if (user && bonus.ewalet_new > 0 && bonus.ewallet_use_new > 0) {
+                    //console.log('user : ', user);
+                    const updateCustomerQuery = `
+                        UPDATE customers
+                        SET ewallet = ?, ewallet_use = ?
+                        WHERE user_name = ?
+                    `;
+                    await query(updateCustomerQuery, [bonus.ewalet_new || user.ewallet_old, bonus.ewallet_use_new || user.ewallet_use_old, user.user_name]);
+                }
+
+                const codeBonus = await generateCodeBonus();
+                const eWallet = {
+                    transaction_code: codeBonus,
+                    customers_id_fk: user.id,
+                    customer_username: user.user_name,
+                    customers_id_receive: to_customer_id,
+                    customers_name_receive: to_customer_username,
+                    tax_total: ((user.pv * user.bonus_percen / 100) * (3/100)),
+                    bonus_full: user.pv * user.bonus_percen / 100,
+                    amt: user.bonus,
+                    old_balance: user.ewallet_old >= 9999999.99 ? 9999999.99 : user.ewallet_old,
+                    balance: bonus.ewalet_new >= 9999999.99 ? 9999999.99 : bonus.ewalet_new,
+                    note_orther: 'G' + user.lv[0],
+                    type: 8,
+                    receive_date: new Date(),
+                    receive_time: new Date(),
+                    status: 2
+                };
+
+                await query('INSERT INTO ewallet SET ?', [eWallet]);
             }
         }
 

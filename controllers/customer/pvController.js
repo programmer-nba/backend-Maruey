@@ -399,6 +399,10 @@ exports.jangPvUpgrade = async (req, res) => {
         await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000);
 
         const codeBonus = await generateCodeBonus();
+        console.log('codeBonus', codeBonus);
+        let codePv = await generateCodePv();
+        console.log('codePv', codePv);
+
         const userActionQuery = `
             SELECT ewallet, id, user_name, ewallet_use, pv, bonus_total, pv_upgrad, name, last_name 
             FROM customers 
@@ -533,7 +537,7 @@ exports.jangPvUpgrade = async (req, res) => {
             `;
             const [runDataUsers] = await query(runDataUserQuery, [customerUsername]);
             //console.log('runDataUser', runDataUsers[0])
-            //console.log('customerUsername', customerUsername)
+            console.log('customerUsername-', i, ' : ', customerUsername)
             let runDataUser = runDataUsers[0];
             if (!runDataUser) {
                 break;
@@ -574,7 +578,7 @@ exports.jangPvUpgrade = async (req, res) => {
                 tax_total: walletTotal * 0.03,
             });
 
-            //console.log(reportBonusRegister)
+            console.log('reportBonusRegister : ', i)
 
             customerUsername = runDataUser.introduce_id;
         }
@@ -601,13 +605,47 @@ exports.jangPvUpgrade = async (req, res) => {
             await query(logUpdateQuery, [dataUser.user_name, dataUser.introduce_id, dataUser.qualification_id, positionUpdate, 'success', 'jangpv']);
         }
 
-        const handleBonusRegisters = reportBonusRegister.map( async (item) => {
-            await handleBonusRegister(
-                item.code_bonus, input_user_name_upgrad, userAction, dataUser, positionUpdate, pv_upgrad_input, pvUpgradTotal
-            )
-        })
+        
+        const handleBonusRegisters = await handleBonusRegister(
+            codeBonus, input_user_name_upgrad, userAction, dataUser, positionUpdate, pv_upgrad_input, pvUpgradTotal
+        )
+        
+        console.log('handleBonusRegisters', handleBonusRegisters)
+        //await Promise.all(handleBonusRegisters)
+        
+        const jangPv = {
+            code: codePv,
+            customer_username: userAction.user_name,
+            to_customer_username: input_user_name_upgrad,
+            old_position: dataUser.qualification_id,
+            position: positionUpdate,
+            pv_old: userAction.pv,
+            pv: pv_upgrad_input,
+            pv_balance: parseFloat((parseFloat(userAction.pv) - parseFloat(pv_upgrad_input)).toFixed(2)),
+            type: '4',
+            status: 'Success',
+            type_app: 'app',
+        };
 
-        await Promise.all(handleBonusRegisters)
+        const insertJangPvQuery = `
+            INSERT INTO jang_pv (code, customer_username, to_customer_username, old_position, position, pv_old, pv, pv_balance, type, status, type_app)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+        const jangPvValues = [
+            jangPv.code,
+            jangPv.customer_username,
+            jangPv.to_customer_username,
+            jangPv.old_position,
+            jangPv.position,
+            jangPv.pv_old,
+            jangPv.pv,
+            jangPv.pv_balance,
+            jangPv.type,
+            jangPv.status,
+            jangPv.type_app
+        ];
+
+        await query(insertJangPvQuery, jangPvValues);
 
         return res.status(200).json({
             message: 'success',
@@ -622,7 +660,6 @@ exports.jangPvUpgrade = async (req, res) => {
 };
 
 const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_action, data_user, position_update, pv_balance, pv_upgrad_total) => {
-    
     try {
         await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000);
 
@@ -638,9 +675,10 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
               AND regis_user_name = ?
         `;
         const [bonusRegisters] = await query(getBonusRegistersQuery, [code_bonus, input_user_name_upgrad]);
-
-        for (let b = 0; b < bonusRegisters.length; b++) {
-            const value = bonusRegisters[b];
+        console.log('times = ', bonusRegisters.length);
+        for (let value of bonusRegisters) {
+            console.log('Processing user:', value.user_name_g, 'with bonus:', value.bonus);
+            
             if (value.bonus > 0) {
                 // Fetch customer wallet data
                 const walletQuery = `
@@ -651,18 +689,18 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
                 `;
                 const [walletData] = await query(walletQuery, [value.user_name_g]);
                 const wallet_g = walletData[0];
-
+        
                 if (!wallet_g) {
                     throw new Error(`Customer with username ${value.user_name_g} not found`);
                 }
-
-                let wallet_g_user = wallet_g.ewallet || 0;
-                let bonus_total = (wallet_g.bonus_total || 0) + value.bonus;
-                let ewallet_use = wallet_g.ewallet_use || 0;
-
-                let wallet_g_total = wallet_g_user + value.bonus;
-                let ewallet_use_total = ewallet_use + value.bonus;
-
+        
+                let wallet_g_user = parseFloat(wallet_g.ewallet) || 0;
+                let bonus_total = parseFloat(wallet_g.bonus_total || 0) + parseFloat(value.bonus);
+                let ewallet_use = parseFloat(wallet_g.ewallet_use) || 0;
+        
+                let wallet_g_total = parseFloat((parseFloat(wallet_g_user) + parseFloat(value.bonus)).toFixed(2));
+                let ewallet_use_total = ewallet_use + parseFloat(value.bonus);
+        
                 // Insert into eWallet
                 const insertEWalletQuery = `
                     INSERT INTO ewallet (transaction_code, customers_id_fk, customer_username, tax_total, bonus_full, amt, old_balance, balance, type, note_orther, receive_date, receive_time, status)
@@ -672,9 +710,9 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
                     code_bonus,
                     wallet_g.id,
                     value.user_name_g,
-                    value.tax_total,
-                    value.bonus_full,
-                    value.bonus,
+                    parseFloat(value.tax_total),
+                    parseFloat(value.bonus_full),
+                    parseFloat(value.bonus),
                     wallet_g_user,
                     wallet_g_total,
                     10,
@@ -684,7 +722,8 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
                     2
                 ];
                 await query(insertEWalletQuery, eWalletValues);
-
+                console.log('update ewallet : ', value.user_name_g, ': ', wallet_g_user, '->', wallet_g_total);
+        
                 // Update customer data
                 const updateCustomerQuery = `
                     UPDATE customers
@@ -692,7 +731,7 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
                     WHERE id = ?
                 `;
                 await query(updateCustomerQuery, [wallet_g_total, ewallet_use_total, bonus_total, wallet_g.id]);
-
+        
                 // Update report_bonus_register status
                 const updateBonusRegisterQuery = `
                     UPDATE report_bonus_register
@@ -734,7 +773,7 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
 
             const insertJangPvQuery = `
                 INSERT INTO jang_pv (code, customer_username, to_customer_username, old_position, position, pv_old, pv, pv_balance, type, status, type_app)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
             const jangPvValues = [
                 jangPv.code,
@@ -800,7 +839,7 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
         }
 
         await query('COMMIT');
-        
+
         return { status: 200, message: `แจงอัพเกรดรหัส ${data_user.user_name} สำเร็จ` };
     } catch (error) {
         await query('ROLLBACK');

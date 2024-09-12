@@ -665,7 +665,7 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
 
                 // Insert into eWallet
                 const insertEWalletQuery = `
-                    INSERT INTO eWallet (transaction_code, customers_id_fk, customer_username, tax_total, bonus_full, amt, old_balance, balance, type, note_orther, receive_date, receive_time, status)
+                    INSERT INTO ewallet (transaction_code, customers_id_fk, customer_username, tax_total, bonus_full, amt, old_balance, balance, type, note_orther, receive_date, receive_time, status)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
                 const eWalletValues = [
@@ -755,7 +755,7 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
             if (pv_upgrad_total >= 1200) {
                 const insurance_date = new Date();
                 insurance_date.setFullYear(insurance_date.getFullYear() + 1);
-                const logInsuranceData = {
+                const log_insurance = {
                     user_name: data_user.user_name,
                     old_exprie_date: data_user.expire_insurance_date,
                     new_exprie_date: insurance_date.toISOString().split('T')[0],
@@ -764,7 +764,20 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
                     status: 'success',
                     type: 'jangpv'
                 };
-                //await LogInsurance.create(logInsuranceData);
+                const insertLogInsurance = `
+                INSERT INTO log_insurance (user_name, old_exprie_date, new_exprie_date, position, pv, status, type)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                `;
+                const logInsuranceValues = [
+                    log_insurance.user_name,
+                    log_insurance.old_exprie_date,
+                    log_insurance.new_exprie_date,
+                    log_insurance.position,
+                    log_insurance.pv,
+                    log_insurance.status,
+                    log_insurance.type
+                ];
+                await query(insertLogInsurance, logInsuranceValues);
 
                 await query(`
                     UPDATE customers
@@ -786,14 +799,8 @@ const handleBonusRegister = async (code_bonus, input_user_name_upgrad, user_acti
             `, [position_update, pv_upgrad_total, data_user.user_name]);
         }
 
-        // Update user_action
-        /* await query(`
-            UPDATE customers
-            SET pv = ?
-            WHERE id = ?
-        `, [pv_balance, user_action.id]); */
-
         await query('COMMIT');
+        
         return { status: 200, message: `แจงอัพเกรดรหัส ${data_user.user_name} สำเร็จ` };
     } catch (error) {
         await query('ROLLBACK');

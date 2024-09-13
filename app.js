@@ -16,35 +16,6 @@ const urldatabase =process.env.ATLAS_MONGODB
 mongoose.Promise = global.Promise
 mongoose.connect(urldatabase).then(()=>console.log("connect")).catch((err)=>console.error(err))
 
-app.get('/v1/Backend-Maruey/ping', (req, res) => {
-  return res.status(200).json({
-    status: true,
-    now: new Date(),
-  })
-});
-
-app.get('/v1/Backend-Maruey/version', (req, res) => {
-  const last_version = "2.1"
-  const current_version = "2.2"
-  const update = "07-09-2024"
-  return res.status(200).json({
-    status: true,
-    last_version,
-    current_version,
-    updatedAt: update
-  })
-});
-
-app.get('/v1/Backend-Maruey/downloads/app/test', (req, res) => {
-    const filePath = path.join(__dirname, 'downloads', 'app-maruey-test.apk');
-    console.log(filePath)
-    res.sendFile(filePath);
-  });
-
-app.get('/v1/Backend-Maruey/downloads/app/release', (req, res) => {
-    const filePath = path.join(__dirname, 'downloads', 'app-maruey.apk');
-    res.sendFile(filePath);
-  });
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -122,6 +93,36 @@ app.use(prefix + '/', require('./routes/customer/customerMLM'))
 app.use(prefix + '/', require('./routes/order/orderMLM'))
 
 app.use(prefix + '/', require('./routes/customer/pv'))
+
+app.get(prefix + '/ping', (req, res) => {
+  return res.status(200).json({
+    status: true,
+    now: new Date(),
+  })
+});
+
+app.get(prefix + '/version', (req, res) => {
+  const last_version = "2.1"
+  const current_version = "2.2"
+  const update = "07-09-2024"
+  return res.status(200).json({
+    status: true,
+    last_version,
+    current_version,
+    updatedAt: update
+  })
+});
+
+app.get(prefix + '/downloads/app/test', (req, res) => {
+    const filePath = path.join(__dirname, 'downloads', 'app-maruey-test.apk');
+    console.log(filePath)
+    res.sendFile(filePath);
+  });
+
+app.get(prefix + '/downloads/app/release', (req, res) => {
+    const filePath = path.join(__dirname, 'downloads', 'app-maruey.apk');
+    res.sendFile(filePath);
+  });
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // หรือกำหนด origin ที่เฉพาะเจาะจง

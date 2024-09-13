@@ -94,36 +94,6 @@ app.use(prefix + '/', require('./routes/order/orderMLM'))
 
 app.use(prefix + '/', require('./routes/customer/pv'))
 
-app.get(prefix + '/ping', (req, res) => {
-  return res.status(200).json({
-    status: true,
-    now: new Date(),
-  })
-});
-
-app.get(prefix + '/version', (req, res) => {
-  const last_version = "2.1"
-  const current_version = "2.2"
-  const update = "07-09-2024"
-  return res.status(200).json({
-    status: true,
-    last_version,
-    current_version,
-    updatedAt: update
-  })
-});
-
-app.get(prefix + '/downloads/app/test', (req, res) => {
-    const filePath = path.join(__dirname, 'downloads', 'app-maruey-test.apk');
-    console.log(filePath)
-    res.sendFile(filePath);
-  });
-
-app.get(prefix + '/downloads/app/release', (req, res) => {
-    const filePath = path.join(__dirname, 'downloads', 'app-maruey.apk');
-    res.sendFile(filePath);
-  });
-
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*'); // หรือกำหนด origin ที่เฉพาะเจาะจง
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');

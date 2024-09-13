@@ -57,12 +57,12 @@ module.exports.add = async (req, res) => {
 //ดึงข้อมูลสินค้าทั้งหมด 
 module.exports.getall = async (req, res) => {
     try{
-        const get = await Product.find().populate('product_partner_id').populate('product_category').populate('product_type');
-        if(get){
-            return res.status(200).json({message:"ดึงข้อมูลสินค้าสำเร็จ",data:get,status:true});
-        }else{
-            return res.status(400).json({message:"ดึงข้อมูลสินค้าไม่สำเร็จ",status:false});
-        }
+        //const get = await Product.find().populate('product_partner_id').populate('product_category').populate('product_type');
+        return res.status(200).json({
+            message:"success",
+            version:'2.2',
+            status:true
+        });
     }catch(error){
         return res.status(500).json({message:error.message, status: false});
     }

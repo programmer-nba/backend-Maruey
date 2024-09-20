@@ -1,6 +1,5 @@
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const { Partner ,validatepartner }= require("../../models/partner/partner.schema");
+const { Partner, PartnerPicture, PartnerLog } = require("../../models/partner/partner.schema");
 const Checkalluse = require("../../functions/check-alluser");
 const multer = require("multer");
 const {
@@ -16,80 +15,77 @@ const storage = multer.diskStorage({
 });
 
 //สร้างไอดี Partner (คู่ค้า)
-module.exports.add = async (req, res) => {
+module.exports.createPartner = async (req, res) => {
+  let { 
+    customer_id,
+    customer_username,
+    name,
+    address,
+    moo,
+    soi,
+    road,
+    tambon,
+    amphure,
+    province,
+    zipcode,
+    phone,
+    map_url,
+    map_lat,
+    map_lon,
+    opendays,
+    description
+  } = req.body
   try {
-    
-      //เช็คว่ากรอกข้อมูลครบที่จำเป็นไหม
-      const error = validatepartner(req.body);
-      if(error.status == false){
-        return res.status(400).send({ message: error.details[0].message, status: false });
+      const existPartner = await Partner.findOne({ customer_username: customer_username })
+      if (existPartner) {
+        return res.status(400).json({
+          message: 'user นี้ ได้สมัคร partner แล้ว'
+        })
       }
 
-      //เช็คusername ซ้ำ
-      const checkusername = await Checkalluse.CheckUsername(req.body.username);
-      if (checkusername == true) {
-        return res.status(409).send({ status: false, message: "username นี้มีคนใช้แล้ว" });
-      }
+      const newPartner = new Partner({
+        customer_id,
+        customer_username,
+        name,
+        address,
+        moo,
+        soi,
+        road,
+        tambon,
+        amphure,
+        province,
+        zipcode,
+        phone,
+        map_url,
+        map_lat,
+        map_lon,
+        opendays,
+        description
+      })
 
-      //เช็คอีเมล์ซ้ำ
-      const checkemail = await Checkalluse.CheckEmail(req.body.email);
-      if (checkemail == true) {
-        return res.status(409).send({ status: false, message: "email นี้มีคนใช้แล้ว" });
-      }
+      const savedPartner = await newPartner.save()
 
-      //เช็คเบอร์โทรศัพท์ซ้ำ
-      const checktelephone = await Checkalluse.CheckTelephone(req.body.telephone);
-      if (checktelephone == true) {
-        return res.status(409).send({ status: false, message: "เบอร์โทรศัพท์ นี้มีคนใช้แล้ว" });
-      }
+      const partnerLog = new PartnerLog({
+        action: "register",
+        partner_id: savedPartner._id,
+        description: "สมัคร partner ใหม่",
+      })
 
-      //เช็คว่าเลขบัตรประจำตัวผู้เสียภาษีซ้ำไหม
-      const checkcompany_taxid = await Partner.find({ company_taxid: req.body.company_taxid });
-      if (checkcompany_taxid.length !== 0) {
-        return res.status(409).send({ status: false, message: "เลขประจำตัวผู้เสียภาษี นี้มีคนใช้แล้ว" });
-      }
+      await partnerLog.save()
 
-
-
-      const data = new Partner({
-        username: req.body.username,
-        email: req.body.email,
-        telephone: req.body.telephone,
-        password: bcrypt.hashSync(req.body.password, 10),
-        name: req.body.name,
-        referralcode: await runreferralcode(),//(รหัสผู้แนะนำ)
-        address: req.body.address,
-        company_name: req.body.company_name, //(ชื่อบริษัท)
-        company_taxid: req.body.company_taxid, //(เลขประจำตัวผู้เสียภาษี)
-        company_address: req.body.company_address, //(ที่อยู่บริษัท)
-        partner_status:false,  //(true: อนุมัติ ,false: ไม่อนุมัติ)
-        partner_status_promiss: false, //( true:ยอมรับเงื่อนไข , false: ยังไม่ยอมรับเงื่อนไข)  // สัญญา Partner
-        pdpa :false, //( true:ยอมรับเงื่อนไข , false: ยังไม่ยอมรับเงื่อนไข) 
-        bank:{
-            accountname:req.body.bank.accountname,  //(ชื่อบัญชี)
-            accountnumber: req.body.bank.accountnumber, //(เลขบัญชี) 
-            name: req.body.bank.name, //(ชื่อธนาคาร)
-            branch: req.body.bank.branch,  //(สาขา) 
-            imgbank: "" //(รูปภาพบัญชี)
-        },
-        iden:{ //(บัตรประชาชน)
-	        iden_number : req.body.iden.iden_number, //(เลขบัตรประชาชน)
-	        iden_image : ""  //(รูปภาพบัตรประชาชน)
+      return res.status(201).json({
+        message: 'success',
+        status: true,
+        data: {
+          name: savedPartner.name,
+          code: savedPartner.code,
+          _id: savedPartner._id
         }
-
-      });
-
-      const add = await data.save();
-      return res
-        .status(200)
-        .send({
-          status: true,
-          message: "คุณได้สร้างไอดี Partner เรียบร้อย",
-          data: add,
-        });
-
-  } catch (error) {
-    return res.status(500).send({ status: false, error: error.message });
+      })
+      
+  } catch (err) {
+    console.log(err)
+    return res.status(500).json({ message: err.message });
   }
 };
 

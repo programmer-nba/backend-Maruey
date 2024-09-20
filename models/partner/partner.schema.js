@@ -1,65 +1,57 @@
 const mongoose = require("mongoose");
-const Joi = require("joi");
 
 const PartnerSchema = new mongoose.Schema(
   {
-    // เพิ่มมาใหม่
-    username:{type:String,require:true,unique: true},
-    email:{type:String,require:true,unique: true},
-    telephone:{type:String,require:true,unique:true},
-    password: {type: String, required: true},
-    name:{type:String,required:true},
-    referralcode:{type:String,required:true,unique:true}, //รหัสผู้แนะนำ
-    address:{type:{
-        address:{type:String,default:""}, //(ที่อยู่)
-        province:{type:String,default:""}, //(จังหวัด)
-        amphure:{type:String,default:""}, //(อำเภอ)
-        tambon: {type:String,default:""}, //(ตำบล)
-        zipcode:{type:String,default:""}//(รหัสไปรษณีย์)	        
-    },required:false,default:null},
-    company_name:{type:String,default:""}, //(ชื่อบริษัท)
-    company_taxid:{type:String,default:""}, //(เลขประจำตัวผู้เสียภาษี):
-    company_address:{type:{
-        address:{type:String,default:""}, //(ที่อยู่บริษัท)
-        province:{type:String,default:""}, //(จังหวัด)
-        amphure:{type:String,default:""}, //(อำเภอ)
-        tambon: {type:String,default:""}, //(ตำบล)
-        zipcode:{type:String,default:"" }
-    },default:null}, //(ที่อยู่บริษัท)
-    partner_status:{type:Boolean,default:false},  //(true: อนุมัติ ,false: ไม่อนุมัติ)
-    partner_status_promiss: {type:Boolean,default:false},  //( true:ยอมรับเงื่อนไข , false: ยังไม่ยอมรับเงื่อนไข)  // สัญญา partner
-    pdpa : {type:Boolean,default:false}, //( true:ยอมรับเงื่อนไข , false: ยังไม่ยอมรับเงื่อนไข) 
-    bank:{type:{
-        accountname:{type:String,default:""}, //(ชื่อบัญชี)
-        accountnumber:{type:String,default:""}, //(เลขบัญชี) 
-	    name:{type:String,default:""}, //(ชื่อธนาคาร)
-        branch:{type:String,default:""}, //(สาขา)
-        imgbank:{type:String,default:""} // (รูปภาพบัญชี)
-    },default:null},
-    iden:{type:{ //(บัตรประชาชน)
-        iden_number:{type:String,default:""}, //(เลขบัตรประชาชน)
-	    iden_image:{type:String,default:""}, //(รูปภาพบัตรประชาชน)
-    },default:null},
-    income :{type:Number,default:0} //(ค่าคอมมิสชั่น)
+    customer_id: { type: String, required: true },
+    customer_username: { type: String, required: true },
+    code: { type: String, required: true, UUID: true, unique: true },
+    name: { type: String, required: true },
+    address: { type: String, required: true },
+    moo: { type: String, required: true },
+    soi: { type: String, default: "" },
+    road: { type: String, default: "" },
+    tambon: { type: String, required: true },
+    amphure: { type: String, required: true },
+    province: { type: String, required: true },
+    zipcode: { type: String, required: true },
+    phone: { type: String, required: true },
+    map_url: { type: String, default: "" },
+    map_lat: { type: String, default: "" },
+    map_lon: { type: String, default: "" },
+    opendays: { type: Array, default: [] },
+    description: { type: String, default: "" },
+    status: { type: Number, default: 4, enum: [1, 2, 3, 4] }, // 1=active, 2=inactive, 3=deleted, 4=pending
   },
-  {timestamps: true}
-);
+  {
+    timestamps: true
+  }
+)
+PartnerSchema.index({ code: 1 }, { unique: true });
+const Partner = mongoose.model("Partner", PartnerSchema);
 
-const Partner = mongoose.model("partner", PartnerSchema);
+const PartnerPicetureSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    partner_id: { type: String, required: true },
+    path: { type: String, required: true },
+    description: { type: String, default: "" },
+  },
+  {
+    timestamps: true
+  }
+)
+const PartnerPicture = mongoose.model("PartnerPicture", PartnerPicetureSchema);
 
+const PartnerLogSchema = new mongoose.Schema(
+  {
+    action: { type: String, required: true },
+    partner_id: { type: String, required: true },
+    description: { type: String, default: "" },
+  },
+  {
+    timestamps: true
+  }
+)
+const PartnerLog = mongoose.model("PartnerLog", PartnerLogSchema);
 
-const validatepartner = (data) => {
-  const schema = Joi.object({
-    username:Joi.string().required().label("กรุณากรอกชื่อผู้ใช้"),
-    email:Joi.string().required().label("กรุณากรอกอีเมล์"),
-    telephone:Joi.string().required().label("กรุณากรอกเบอร์โทรศัพท์"),
-    password: Joi.string().required().label("กรุณากรอกpassword"),
-    name:Joi.string().required().label("กรุณากรอกชื่อ-นามสกุล"),
-    referralcode:Joi.string().required().label("กรุณากรอกรหัสผู้แนะนำ"),
-  });
-  return schema.validate(data);
-};
-
-
-
-module.exports = {Partner,validatepartner};
+module.exports = { Partner, PartnerPicture, PartnerLog };

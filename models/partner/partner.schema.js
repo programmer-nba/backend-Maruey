@@ -2,9 +2,10 @@ const mongoose = require("mongoose");
 
 const PartnerSchema = new mongoose.Schema(
   {
+    business_type: { type: String, required: true, enum: ['บุคคลธรรมดา', 'นิติบุคคล'] },
     customer_id: { type: String, required: true },
     customer_username: { type: String, required: true },
-    code: { type: String, required: true, UUID: true, unique: true },
+    code: { type: String, UUID: true, unique: true },
     name: { type: String, required: true },
     address: { type: String, required: true },
     moo: { type: String, required: true },
@@ -16,10 +17,14 @@ const PartnerSchema = new mongoose.Schema(
     zipcode: { type: String, required: true },
     phone: { type: String, required: true },
     map_url: { type: String, default: "" },
+    map_iframe: { type: String, default: null },
     map_lat: { type: String, default: "" },
     map_lon: { type: String, default: "" },
-    opendays: { type: Array, default: [] },
+    open_days: { type: Array, default: [] },
+    open_time: { type: String, default: "00:00" },
+    close_time: { type: String, default: "00:00" },
     description: { type: String, default: "" },
+    introduced_id: { type: String, default: null },
     status: { type: Number, default: 4, enum: [1, 2, 3, 4] }, // 1=active, 2=inactive, 3=deleted, 4=pending
   },
   {

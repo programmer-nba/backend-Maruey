@@ -17,6 +17,7 @@ const storage = multer.diskStorage({
 //สร้างไอดี Partner (คู่ค้า)
 module.exports.createPartner = async (req, res) => {
   let { 
+    business_type,
     customer_id,
     customer_username,
     name,
@@ -30,10 +31,14 @@ module.exports.createPartner = async (req, res) => {
     zipcode,
     phone,
     map_url,
+    map_iframe,
     map_lat,
     map_lon,
-    opendays,
-    description
+    open_days,
+    open_time,
+    close_time,
+    description,
+    introduced_id
   } = req.body
   try {
       const existPartner = await Partner.findOne({ customer_username: customer_username })
@@ -44,6 +49,7 @@ module.exports.createPartner = async (req, res) => {
       }
 
       const newPartner = new Partner({
+        business_type,
         customer_id,
         customer_username,
         name,
@@ -57,10 +63,14 @@ module.exports.createPartner = async (req, res) => {
         zipcode,
         phone,
         map_url,
+        map_iframe,
         map_lat,
         map_lon,
-        opendays,
-        description
+        open_days,
+        open_time,
+        close_time,
+        description,
+        introduced_id
       })
 
       const savedPartner = await newPartner.save()
@@ -89,6 +99,96 @@ module.exports.createPartner = async (req, res) => {
   }
 };
 
+module.exports.updatePartner = async (req, res) => {
+  let { 
+    //business_type,
+    //customer_id,
+    //customer_username,
+    name,
+    address,
+    moo,
+    soi,
+    road,
+    tambon,
+    amphure,
+    province,
+    zipcode,
+    phone,
+    map_url,
+    map_iframe,
+    map_lat,
+    map_lon,
+    open_days,
+    open_time,
+    close_time,
+    description,
+    //introduced_id
+  } = req.body
+  const { id } = req.params
+  try {
+    const existPartner = await Partner.findById(id)
+    if (!existPartner) {
+      return res.status(400).json({
+        message: 'ไม่มี partner นี้ในระบบ'
+      })
+    }
+      const duplicatedPartner = await Partner.findOne({ name: name })
+      if (duplicatedPartner?.name && duplicatedPartner?.name !== existPartner.name) {
+        return res.status(400).json({
+          message: 'มีชื่อ partner นี้ในระบบแล้ว'
+        })
+      }
+
+      const updatedPartner = await Partner.findByIdAndUpdate( id, {
+        //business_type,
+        //customer_id,
+        //customer_username,
+        name,
+        address,
+        moo,
+        soi,
+        road,
+        tambon,
+        amphure,
+        province,
+        zipcode,
+        phone,
+        map_url,
+        map_iframe,
+        map_lat,
+        map_lon,
+        open_days,
+        open_time,
+        close_time,
+        description,
+        //introduced_id
+      }, { new: true })
+
+      if (!updatedPartner) {
+        return res.status(400).json({
+          message: 'ไม่สามารถอัพเดทข้อมูล partner ได้'
+        })
+      }
+
+      const partnerLog = new PartnerLog({
+        action: "update",
+        partner_id: id,
+        description: "อัพเดทข้อมูล partner",
+      })
+
+      await partnerLog.save()
+
+      return res.status(201).json({
+        message: 'success',
+        status: true,
+        //data: updatedPartner
+      })
+      
+  } catch (err) {
+    console.log(err)
+    return res.status(500).json({ message: err.message });
+  }
+};
 
 //ดึงข้อมูลทั้งหมด
 module.exports.getall = async (req, res) => {
@@ -103,22 +203,30 @@ module.exports.getall = async (req, res) => {
   }
 };
 
-
-
 //ดึงข้อมูล by id
-module.exports.getbyid = async (req, res) => {
+module.exports.getPartnerById = async (req, res) => {
   try {
-    const partnerdata = await Partner.findOne({ _id: req.params.id });
-    if (!partnerdata) {
-      return res.status(404).send({ status: false, message: "ไม่มีข้อมูลคู่ค้า" });
+    const partner = await Partner.findById(req.params.id).select("-__v");
+    if (!partner) {
+      return res.status(404).send({ message: "ไม่มีข้อมูลคู่ค้า" });
     }
-    return res.status(200).send({ status: true, data: partnerdata });
+    return res.status(200).json({ status: true, data: partner });
   } catch (error) {
-    return res.status(500).send({ status: false, error: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
-
+module.exports.getPartnerByUsername = async (req, res) => {
+  try {
+    const partner = await Partner.findOne({ customer_username: req.params.username}).select("-__v");
+    if (!partner) {
+      return res.status(404).send({ message: "ไม่มีข้อมูลคู่ค้า" });
+    }
+    return res.status(200).json({ status: true, data: partner });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
 
 //แก้ไขข้อมูล Partner
 module.exports.edit = async (req, res) => {
@@ -331,36 +439,4 @@ module.exports.status_promiss = async (req, res) => {
     } catch (error) {
         return res.status(500).send({ status: false, error: error.message });
     }
-}
-
-
-//รันเลขผู้แนะนำ
-async function runreferralcode() {
-
-      const startDate = new Date(new Date().setHours(0, 0, 0, 0)); // เริ่มต้นของวันนี้
-      const endDate = new Date(new Date().setHours(23, 59, 59, 999)); // สิ้นสุดของวันนี้
-      const number = await Partner.find({ createdAt: { $gte: startDate, $lte: endDate } }).countDocuments()
-      const currentDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      let referenceNumber = String(number).padStart(5, '0');
-      let ref = `Partner${currentDate}${referenceNumber}`;
-      let loopnum  = 0
-      let check = await Partner.find({ referralcode: ref }).countDocuments();
-      if (check!== 0) {
-        
-        do{
-          check = await Partner.find({ referralcode: ref }).countDocuments()
-          if(check != 0)
-          {
-            loopnum++;
-            referenceNumber = String(number+loopnum).padStart(5, '0');
-            ref = `Partner${currentDate}${referenceNumber}`;
-          }
-
-        }while(check !== 0)
-
-      }
-       
-      return ref;
-
-      
 }

@@ -2,17 +2,28 @@ const bcrypt = require("bcryptjs");
 const { Partner, PartnerPicture, PartnerLog } = require("../../models/partner/partner.schema");
 const Checkalluse = require("../../functions/check-alluser");
 const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
 const {
   uploadFileCreate,
   deleteFile,
 } = require("../../functions/uploadfilecreate");
 
 const storage = multer.diskStorage({
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-    //console.log(file.originalname);
+  // Specify the destination to save the uploaded files
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // Specify the folder (make sure it exists or create it)
   },
+  // Set up the filename to avoid overwriting
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
 });
+
+const upload = multer({ storage: storage });
+
+module.exports = { upload }
 
 //สร้างไอดี Partner (คู่ค้า)
 module.exports.createPartner = async (req, res) => {
@@ -47,8 +58,9 @@ module.exports.createPartner = async (req, res) => {
           message: 'user นี้ ได้สมัคร partner แล้ว'
         })
       }
-
+      const code = `PM${customer_username}`
       const newPartner = new Partner({
+        code: code,
         business_type,
         customer_id,
         customer_username,
@@ -122,7 +134,8 @@ module.exports.updatePartner = async (req, res) => {
     open_time,
     close_time,
     description,
-    //introduced_id
+    introduced_id,
+    stars
   } = req.body
   const { id } = req.params
   try {
@@ -139,10 +152,12 @@ module.exports.updatePartner = async (req, res) => {
         })
       }
 
+      const code = `PM${existPartner.customer_username}`
       const updatedPartner = await Partner.findByIdAndUpdate( id, {
         //business_type,
         //customer_id,
         //customer_username,
+        code: code,
         name,
         address,
         moo,
@@ -161,7 +176,8 @@ module.exports.updatePartner = async (req, res) => {
         open_time,
         close_time,
         description,
-        //introduced_id
+        introduced_id,
+        stars
       }, { new: true })
 
       if (!updatedPartner) {
@@ -202,6 +218,56 @@ module.exports.getall = async (req, res) => {
     return res.status(500).send({ status: false, error: error.message });
   }
 };
+
+module.exports.uploadPartnerImage = async (req, res) => {
+  try {
+    const partner = await Partner.findById(req.body.shop_id);
+    if (!partner) {
+      return res.status(404).send({ message: "ไม่มีข้อมูลคู่ค้า" });
+    }
+    const image = req.file
+    if (!image) {
+      return res.status(400).send({ message: "กรุณาเลือกรูปภาพ" });
+    }
+    const oldFile = await PartnerPicture.findOne({ partner_id: req.body.shop_id, title: 'shopPicture', description: req.body.description });
+    if (oldFile) {
+      const filePath = path.join(__dirname, '..', '..', 'uploads', oldFile.path);
+      console.log(filePath);
+      if (fs.existsSync(filePath)) {
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.log('Error deleting file:', err);
+            //return res.status(500).json({ message: 'Failed to delete the file' });
+          }
+          console.log('File deleted successfully');
+          //res.status(200).json({ message: 'File deleted successfully' });
+        });
+      }
+    }
+    await PartnerPicture.deleteMany({ partner_id: req.body.shop_id, title: 'shopPicture', description: req.body.description });
+    const savedImage = await PartnerPicture.create({
+      title:  req.body.title,
+      partner_id: req.body.shop_id,
+      path: image.filename,
+      description: req.body.description,
+    });
+    //console.log(image.filename);
+    //partner.picture = savedImage._id;
+    //await partner.save();
+    return res.status(200).send({ message: "อัพโหลดรูปภาพสําเร็จ", data: savedImage });
+  } catch (error) {
+    return res.status(500).send({ message: error.message });
+  }
+}
+
+module.exports.getPartnerImage = async (req, res) => {
+  try {
+    const partnerImages = await PartnerPicture.find({ partner_id: req.params.shop_id, title: 'shopPicture' });
+    return res.status(200).send({ message: "ดึงรูปภาพสําเร็จ", status: true, path: 'file/', data: partnerImages });
+  } catch (error) {
+    return res.status(500).send({ message: error.message });
+  }
+}
 
 //ดึงข้อมูล by id
 module.exports.getPartnerById = async (req, res) => {

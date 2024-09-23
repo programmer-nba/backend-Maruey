@@ -26,6 +26,7 @@ const PartnerSchema = new mongoose.Schema(
     description: { type: String, default: "" },
     introduced_id: { type: String, default: null },
     status: { type: Number, default: 4, enum: [1, 2, 3, 4] }, // 1=active, 2=inactive, 3=deleted, 4=pending
+    stars: { type: Number, default: 0 },
   },
   {
     timestamps: true

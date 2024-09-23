@@ -4,6 +4,8 @@ const Partner = require("../../controllers/partner/partner.controller")
 const userAuth = require('../../authentication/userAuth')
 
 router.post('/', Partner.createPartner);
+router.post('/shop-image', Partner.upload.single('file'), Partner.uploadPartnerImage);
+router.get('/shop/shop-image/:shop_id', Partner.getPartnerImage);
 router.get('/:id', Partner.getPartnerById);
 router.get('/byusername/:username', Partner.getPartnerByUsername);
 router.put('/:id', Partner.updatePartner);

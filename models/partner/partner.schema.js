@@ -7,6 +7,7 @@ const PartnerSchema = new mongoose.Schema(
     customer_username: { type: String, required: true },
     code: { type: String, UUID: true, unique: true },
     name: { type: String, required: true },
+    tax_id: { type: String, default: "" },
     address: { type: String, required: true },
     moo: { type: String, required: true },
     soi: { type: String, default: "" },

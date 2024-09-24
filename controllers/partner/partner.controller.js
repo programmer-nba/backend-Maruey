@@ -32,6 +32,7 @@ module.exports.createPartner = async (req, res) => {
     customer_id,
     customer_username,
     name,
+    tax_id,
     address,
     moo,
     soi,
@@ -65,6 +66,7 @@ module.exports.createPartner = async (req, res) => {
         customer_id,
         customer_username,
         name,
+        tax_id,
         address,
         moo,
         soi,
@@ -117,6 +119,7 @@ module.exports.updatePartner = async (req, res) => {
     //customer_id,
     //customer_username,
     name,
+    tax_id,
     address,
     moo,
     soi,
@@ -152,13 +155,14 @@ module.exports.updatePartner = async (req, res) => {
         })
       }
 
-      const code = `PM${existPartner.customer_username}`
+      //const code = `PM${existPartner.customer_username}`
       const updatedPartner = await Partner.findByIdAndUpdate( id, {
         //business_type,
         //customer_id,
         //customer_username,
-        code: code,
+        //code: code,
         name,
+        tax_id,
         address,
         moo,
         soi,

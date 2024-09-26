@@ -138,7 +138,8 @@ module.exports.updatePartner = async (req, res) => {
     close_time,
     description,
     introduced_id,
-    stars
+    stars,
+    status
   } = req.body
   const { id } = req.params
   try {
@@ -181,7 +182,8 @@ module.exports.updatePartner = async (req, res) => {
         close_time,
         description,
         introduced_id,
-        stars
+        stars,
+        status
       }, { new: true })
 
       if (!updatedPartner) {

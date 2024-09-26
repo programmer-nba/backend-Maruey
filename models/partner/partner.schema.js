@@ -26,7 +26,7 @@ const PartnerSchema = new mongoose.Schema(
     close_time: { type: String, default: "00:00" },
     description: { type: String, default: "" },
     introduced_id: { type: String, default: null },
-    status: { type: Number, default: 4, enum: [1, 2, 3, 4] }, // 1=active, 2=inactive, 3=deleted, 4=pending
+    status: { type: Number, default: 4, enum: [1, 2, 3, 4, 5] }, // 1=active, 2=inactive, 3=deleted, 4=init, 5=pending
     stars: { type: Number, default: 0 },
   },
   {

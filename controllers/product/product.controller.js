@@ -2,11 +2,16 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const {Product,validateproduct} = require("../../models/product/product.schema");
 const Checkalluse = require("../../functions/check-alluser");
+const { PartnerProduct } = require("../../models/product/product.schema");
 const multer = require("multer");
 const {
   uploadFileCreate,
   deleteFile,
 } = require("../../functions/uploadfilecreate");
+
+const generateProductCode = async () => {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
 
 
 const storage = multer.diskStorage({
@@ -51,6 +56,160 @@ module.exports.add = async (req, res) => {
             }
     }catch(error){
         return res.status(500).json({message:error.message, status: false});
+    }
+}
+
+module.exports.createPartnerProduct = async (req, res) => {
+    const {
+        name,
+        description,
+        shop_id,
+        raw_price,
+        discount,
+        unit,
+        product_type,
+        category, // สินค้า, บริการ, อื่นๆ
+        tags,
+        stock,
+        commission
+    } = req.body
+    try {
+        const code = await generateProductCode()
+        const selling_price = raw_price - discount
+        const profit = selling_price - commission
+        const newProduct = new PartnerProduct({
+            code,
+            name,
+            description,
+            shop_id,
+            raw_price,
+            discount,
+            selling_price,
+            profit,
+            unit,
+            product_type,
+            category,
+            tags,
+            stock,
+            commission,
+        })
+
+        const savedProduct = await newProduct.save()
+        return res.status(200).json({ message: "สำเร็จ", data: savedProduct, status: true })
+    }
+    catch(err) {
+        console.log(err)
+        return res.status(500).json({
+            message: "Server Error"
+        })
+    }
+}
+
+module.exports.updatePartnerProduct = async (req, res) => {
+    const {
+        name,
+        description,
+        //shop_id,
+        raw_price,
+        discount,
+        unit,
+        product_type,
+        category, // สินค้า, บริการ, อื่นๆ
+        tags,
+        stock,
+        commission,
+        status
+    } = req.body
+    const { id } = req.params
+    try {
+
+        const existProduct = await PartnerProduct.findById(id)
+        if (!existProduct) {
+            return res.status(400).json({ message: "ไม่พบสินค้า" })
+        }
+        //const code = await generateProductCode()
+        const selling_price = (raw_price || existProduct.raw_price) - (discount || existProduct.discount)
+        const profit = (selling_price || existProduct.selling_price) - (commission || existProduct.commission)
+        const updatedProduct = await PartnerProduct.findByIdAndUpdate( id, {
+            //code,
+            name,
+            description,
+            //shop_id,
+            raw_price: raw_price || existProduct.raw_price,
+            discount: discount || existProduct.discount,
+            selling_price,
+            profit: profit || existProduct.profit,
+            unit,
+            product_type,
+            category,
+            tags,
+            stock,
+            commission: commission || existProduct.commission,
+            status,
+        }, { new: true })
+
+        return res.status(200).json({ message: "สำเร็จ", data: updatedProduct, status: true })
+    }
+    catch(err) {
+        console.log(err)
+        return res.status(500).json({
+            message: "Server Error"
+        })
+    }
+}
+
+module.exports.getPartnerProducts = async (req, res) => {
+    const { status, shop_id, product_type, category } = req.query
+    try {
+        let filter = {}
+        if (status) {
+            filter.status = status
+        }
+        if (shop_id) {
+            filter.shop_id = shop_id
+        }
+        if (product_type) {
+            filter.product_type = product_type
+        }
+        if (category) {
+            filter.category = category
+        }
+        const products = await PartnerProduct.find(filter)
+        return res.status(200).json({ message: "success", data: products, status: true })
+    }
+    catch(err) {
+        console.loglog(err)
+        return res.status(500).json({
+            message: "Server Error"
+        })
+    }
+}
+
+module.exports.getPartnerProduct = async (req, res) => {
+    const { id } = req.params
+    try {
+        const product = await PartnerProduct.findById(id)
+        return res.status(200).json({ message: "success", data: product, status: true })
+    }
+    catch(err) {
+        console.log(err)
+        return res.status(500).json({
+            message: "Server Error"
+        })
+    }
+}
+
+module.exports.deletePartnerProduct = async (req, res) => {
+    const { id } = req.params
+    try {
+        const product = await PartnerProduct.findByIdAndDelete(id)
+        return res.status(200).json({ message: "success", data: product, status: true })
+    }
+    catch(err) {
+        console.log(err)
+        return res.status(500).json({
+            message: "Server Error"
+        })
     }
 }
 

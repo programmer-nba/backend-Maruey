@@ -74,6 +74,26 @@ router.get('/file/:file_name', async (req, res) => {
   }
 });
 
+router.get('/file/:file_name/product', async (req, res) => {
+  try {
+    // Construct the full file path
+    const filePath = path.join(__dirname, '..', 'uploads', 'products', req.params.file_name);
+
+    // Send the file to the client
+    res.sendFile(filePath, (err) => {
+      if (err) {
+        // Handle any errors that occur while sending the file
+        console.error('Error sending file:', err);
+        res.status(404).json({ message: 'File not found' });
+      }
+    });
+  } catch (error) {
+    // Handle any other errors that might occur
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 
 router.put('/deleteimage/',async(req,res)=>{
 

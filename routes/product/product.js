@@ -6,11 +6,13 @@ const userAuth = require('../../authentication/userAuth')
 //เพิ่มข้อมูลสินค้า
 router.post('/',userAuth.adminandpartner,product.add);
 
-router.post('/partner', userAuth.all, product.createPartnerProduct);
-router.put('/partner/:id', userAuth.all, product.updatePartnerProduct);
-router.get('/partner', userAuth.all, product.getPartnerProducts);
-router.get('/partner/:id', userAuth.all, product.getPartnerProduct);
-router.delete('/partner/:id', userAuth.all, product.deletePartnerProduct);
+router.post('/partner', product.createPartnerProduct);
+router.post('/partner/product-image', product.upload.single('file'), product.uploadProductImage);
+router.get('/partner/product-image/:product_id', product.getPartnerProductImage);
+router.put('/partner/:id', product.updatePartnerProduct);
+router.get('/partner', product.getPartnerProducts);
+router.get('/partner/:id', product.getPartnerProduct);
+router.delete('/partner/:id', product.deletePartnerProduct);
 
 //ดึงข้อมูลสินค้าทั้งหมด 
 router.get('/',product.getall);

@@ -2,12 +2,15 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const {Product,validateproduct} = require("../../models/product/product.schema");
 const Checkalluse = require("../../functions/check-alluser");
-const { PartnerProduct } = require("../../models/product/product.schema");
+const { PartnerProduct, PartnerProductPicture, PartnerProductLog } = require("../../models/product/product.schema");
+const { Partner, PartnerPicture, PartnerLog } = require("../../models/partner/partner.schema");
 const multer = require("multer");
 const {
   uploadFileCreate,
   deleteFile,
 } = require("../../functions/uploadfilecreate");
+const fs = require("fs");
+const path = require("path");
 
 const generateProductCode = async () => {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -15,11 +18,20 @@ const generateProductCode = async () => {
 
 
 const storage = multer.diskStorage({
-    filename: function (req, file, cb) {
-      cb(null, Date.now() + "-" + file.originalname);
-      //console.log(file.originalname);
+    // Specify the destination to save the uploaded files
+    destination: function (req, file, cb) {
+      cb(null, 'uploads/products/'); // Specify the folder (make sure it exists or create it)
     },
-  });
+    // Set up the filename to avoid overwriting
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, uniqueSuffix + '-' + file.originalname);
+    }
+});
+  
+const upload = multer({ storage: storage });
+  
+module.exports = { upload }
 
   //เพิ่มข้อมูลสินค้า
 module.exports.add = async (req, res) => {
@@ -63,7 +75,7 @@ module.exports.createPartnerProduct = async (req, res) => {
     const {
         name,
         description,
-        shop_id,
+        partner_id,
         raw_price,
         discount,
         unit,
@@ -71,17 +83,18 @@ module.exports.createPartnerProduct = async (req, res) => {
         category, // สินค้า, บริการ, อื่นๆ
         tags,
         stock,
-        commission
+        commission,
+        commission_percent
     } = req.body
     try {
         const code = await generateProductCode()
-        const selling_price = raw_price - discount
+        const selling_price = raw_price - (discount || 0)
         const profit = selling_price - commission
         const newProduct = new PartnerProduct({
             code,
             name,
             description,
-            shop_id,
+            partner_id,
             raw_price,
             discount,
             selling_price,
@@ -92,8 +105,13 @@ module.exports.createPartnerProduct = async (req, res) => {
             tags,
             stock,
             commission,
+            commission_percent
         })
 
+        const existProduct = await PartnerProduct.findOne({ partner_id: partner_id, name: name })
+        if (existProduct) {
+            return res.status(400).json({ message: "สื่อสินค้าซ้ำ", invalid: 'name' })
+        }
         const savedProduct = await newProduct.save()
         return res.status(200).json({ message: "สำเร็จ", data: savedProduct, status: true })
     }
@@ -104,6 +122,57 @@ module.exports.createPartnerProduct = async (req, res) => {
         })
     }
 }
+
+module.exports.uploadProductImage = async (req, res) => {
+    try {
+      const product = await PartnerProduct.findById(req.body.product_id);
+      if (!product) {
+        return res.status(404).send({ message: "ไม่มีข้อมูลสินค้า" });
+      }
+      const image = req.file
+      if (!image) {
+        return res.status(400).send({ message: "กรุณาเลือกรูปภาพ" });
+      }
+      const oldFile = await PartnerProductPicture.findOne({ product_id: req.body.product_id, title: 'product', description: req.body.description });
+      if (oldFile) {
+        const filePath = path.join(__dirname, '..', '..', 'uploads', 'products', oldFile.path);
+        //console.log(filePath);
+        if (fs.existsSync(filePath)) {
+          fs.unlink(filePath, (err) => {
+            if (err) {
+              console.log('Error deleting file:', err);
+              //return res.status(500).json({ message: 'Failed to delete the file' });
+            }
+            console.log('File deleted successfully');
+            //res.status(200).json({ message: 'File deleted successfully' });
+          });
+        }
+      }
+      await PartnerProductPicture.deleteMany({ product_id: req.body.product_id, title: 'product', description: req.body.description });
+      const savedImage = await PartnerProductPicture.create({
+        title:  req.body.title,
+        product_id: req.body.product_id,
+        partner_id: req.body.partner_id,
+        path: image.filename,
+        description: req.body.description,
+      });
+      //console.log(image.filename);
+      //partner.picture = savedImage._id;
+      //await partner.save();
+      return res.status(200).send({ message: "อัพโหลดรูปภาพสําเร็จ", data: savedImage });
+    } catch (error) {
+      return res.status(500).send({ message: error.message });
+    }
+  }
+  
+  module.exports.getPartnerProductImage = async (req, res) => {
+    try {
+      const productImages = await PartnerProductPicture.find({ product_id: req.params.product_id, title: 'product' });
+      return res.status(200).send({ message: "ดึงรูปภาพสําเร็จ", status: true, path: 'file/', data: productImages });
+    } catch (error) {
+      return res.status(500).send({ message: error.message });
+    }
+  }
 
 module.exports.updatePartnerProduct = async (req, res) => {
     const {
@@ -126,6 +195,11 @@ module.exports.updatePartnerProduct = async (req, res) => {
         const existProduct = await PartnerProduct.findById(id)
         if (!existProduct) {
             return res.status(400).json({ message: "ไม่พบสินค้า" })
+        }
+        const duplicateProducts = await PartnerProduct.find({ partner_id: existProduct.partner_id, name: name, _id: { $ne: existProduct._id } })
+        //console.log(existProduct.name, name)
+        if (duplicateProducts.length) {
+            return res.status(400).json({ message: "สื่อสินค้าซ้ำ", invalid: 'name' })
         }
         //const code = await generateProductCode()
         const selling_price = (raw_price || existProduct.raw_price) - (discount || existProduct.discount)
@@ -166,7 +240,7 @@ module.exports.getPartnerProducts = async (req, res) => {
             filter.status = status
         }
         if (shop_id) {
-            filter.shop_id = shop_id
+            filter.partner_id = shop_id
         }
         if (product_type) {
             filter.product_type = product_type
@@ -203,6 +277,25 @@ module.exports.deletePartnerProduct = async (req, res) => {
     const { id } = req.params
     try {
         const product = await PartnerProduct.findByIdAndDelete(id)
+        const oldFiles = await PartnerProductPicture.find({ product_id: id });
+        if (oldFiles.length) {
+            for (const oldFile of oldFiles) {
+                const filePath = path.join(__dirname, '..', '..', 'uploads', 'products', oldFile.path);
+                //console.log(filePath);
+                if (fs.existsSync(filePath)) {
+                  fs.unlink(filePath, (err) => {
+                    if (err) {
+                      console.log('Error deleting file:', err);
+                      //return res.status(500).json({ message: 'Failed to delete the file' });
+                    }
+                    console.log('File deleted successfully');
+                    //res.status(200).json({ message: 'File deleted successfully' });
+                  });
+                }
+            }
+          }
+        await PartnerProductPicture.deleteMany({ product_id: req.body.product_id, title: 'product', description: req.body.description });
+
         return res.status(200).json({ message: "success", data: product, status: true })
     }
     catch(err) {

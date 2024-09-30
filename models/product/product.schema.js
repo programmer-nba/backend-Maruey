@@ -5,7 +5,7 @@ const partnerProductSchema = new mongoose.Schema(
     code: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     description: { type: String, default: "" },
-    shop_id: { type: String, required: true },
+    partner_id: { type: String, required: true },
     status: { type: Number, required: true, default: 4 }, // 1=active,2=inactive,3=empty,4=pending
     raw_price: { type: Number, required: true },
     discount: { type: Number, default: 0 },
@@ -19,6 +19,7 @@ const partnerProductSchema = new mongoose.Schema(
     type: { type: String, default: 'partner' },
     stars: { type: Number, default: 0 },
     commission: { type: Number, required: true },
+    commission_percent: { type: Number, required: true },
   },
   {
     timestamps: true
@@ -26,6 +27,32 @@ const partnerProductSchema = new mongoose.Schema(
 );
 const PartnerProduct = mongoose.model("PartnerProduct", partnerProductSchema);
 
-module.exports = { PartnerProduct };
+const PartnerProductPictureSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    partner_id: { type: String, required: true },
+    path: { type: String, required: true },
+    description: { type: String, default: "" },
+    product_id: { type: String, required: true },
+  },
+  {
+    timestamps: true
+  }
+)
+const PartnerProductPicture = mongoose.model("PartnerProductPicture", PartnerProductPictureSchema);
+
+const partnerProductLogSchema = new mongoose.Schema(
+  {
+    action: { type: String, required: true },
+    partner_id: { type: String, required: true },
+    description: { type: String, default: "" },
+  },
+  {
+    timestamps: true
+  }
+)
+const PartnerProductLog = mongoose.model("PartnerProductLog", partnerProductLogSchema);
+
+module.exports = { PartnerProduct, PartnerProductPicture, PartnerProductLog };
 
 

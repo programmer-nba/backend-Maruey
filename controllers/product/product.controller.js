@@ -165,14 +165,14 @@ module.exports.uploadProductImage = async (req, res) => {
     }
   }
   
-  module.exports.getPartnerProductImage = async (req, res) => {
-    try {
-      const productImages = await PartnerProductPicture.find({ product_id: req.params.product_id, title: 'product' });
-      return res.status(200).send({ message: "ดึงรูปภาพสําเร็จ", status: true, path: 'file/', data: productImages });
-    } catch (error) {
-      return res.status(500).send({ message: error.message });
-    }
-  }
+module.exports.getPartnerProductImage = async (req, res) => {
+try {
+    const productImages = await PartnerProductPicture.find({ product_id: req.params.product_id, title: 'product' });
+    return res.status(200).send({ message: "ดึงรูปภาพสําเร็จ", status: true, path: 'file/', data: productImages });
+} catch (error) {
+    return res.status(500).send({ message: error.message });
+}
+}
 
 module.exports.updatePartnerProduct = async (req, res) => {
     const {
@@ -249,7 +249,21 @@ module.exports.getPartnerProducts = async (req, res) => {
             filter.category = category
         }
         const products = await PartnerProduct.find(filter)
-        return res.status(200).json({ message: "success", data: products, status: true })
+        const formattedProducts = products.map(async product => {
+            const productPictures = await PartnerProductPicture.find({ product_id: product._id, title: 'product' });
+            const formattedPrictures = productPictures.map(picture => {
+                return { path: `file/${picture.path}/product`, desc: parseInt(picture.description) }
+            })
+            const shop = await Partner.findById(product.partner_id)
+            return {
+                ...product._doc,
+                images: formattedPrictures.sort((a, b) => a.desc - b.desc),
+                shop_name: shop.name,
+                pv: Math.floor(product.commission/8)
+            }
+        })
+        const promisedProducts = await Promise.all(formattedProducts)
+        return res.status(200).json({ message: "success", data: promisedProducts, status: true })
     }
     catch(err) {
         console.loglog(err)

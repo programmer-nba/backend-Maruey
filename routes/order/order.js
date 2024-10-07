@@ -1,16 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const Order = require("../../controllers/order/order.controller")
-const userAuth = require('../../authentication/userAuth')
+//const userAuth = require('../../authentication/userAuth')
 
 //สร้างออเดอร์
-router.post('/',userAuth.customer,Order.add);
+router.post('/partner/create', Order.createOrderPartner);
+router.put('/partner/update', Order.updateOrderPartner);
 
 //ดึงออเดอร์ทั้งหมด
-router.get('/',userAuth.all,Order.get);
-//ดึงออเดอร์ตามไอดี
-router.get('/byid/:id',userAuth.customer,Order.getbyid);
+router.post('/partner/all', Order.getUserOrdersPartner); // username
 
-router.get('/test/',Order.test); 
+//ดึงออเดอร์ตามไอดี
+router.get('/partner/:id', Order.getUserOrderPartner);
+
+//router.get('/test/',Order.test); 
 
 module.exports = router;

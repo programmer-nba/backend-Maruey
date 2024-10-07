@@ -21,8 +21,8 @@ const orderSchema = new mongoose.Schema(
         withholding_percent: { type: Number, default: 0 },
         withholding_price: { type: Number, default: 0 },
         net_price: { type: Number, default: 0 },
-        status: { type: Number, default: 1 },
-        to_address_id: { type: String, default: null },
+        status: { type: Number, default: 4 },
+        to_address: { type: Object, default: null },
     },
     {
         timestamps: true

@@ -5,7 +5,7 @@ const Order = require("../../controllers/order/order.controller")
 
 //สร้างออเดอร์
 router.post('/partner/create', Order.createOrderPartner);
-router.put('/partner/update', Order.updateOrderPartner);
+router.put('/partner/update/:id', Order.updateOrderPartner);
 
 //ดึงออเดอร์ทั้งหมด
 router.post('/partner/all', Order.getUserOrdersPartner); // username

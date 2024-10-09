@@ -16,6 +16,7 @@ const partnerProductSchema = new mongoose.Schema(
     category: { type: String, required: true }, // สินค้า, บริการ, อื่นๆ
     tags: { type: Array, default: [] },
     stock: { type: Number, required: true, default: 0 },
+    sold: { type: Number, required: true, default: 0 },
     type: { type: String, default: 'partner' },
     stars: { type: Number, default: 0 },
     commission: { type: Number, required: true },

@@ -24,6 +24,8 @@ const orderSchema = new mongoose.Schema(
         status: { type: Number, default: 4 },
         to_address: { type: Object, default: null },
         total_pv: { type: Number, default: 0 },
+        total_commission: { type: Number, default: 0 },
+        total_income: { type: Number, default: 0 },
     },
     {
         timestamps: true

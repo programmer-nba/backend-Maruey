@@ -1,7 +1,9 @@
 const { Order } = require("../../models/order/order.schema");
+const { PartnerProduct } = require("../../models/product/product.schema");
 const { Partner } = require("../../models/partner/partner.schema");
 const pool = require('../../mysql_db');
 const dayjs = require("dayjs");
+const axios = require('axios');
 const buddhistEra = require("dayjs/plugin/buddhistEra");
 dayjs.extend(buddhistEra);
 dayjs.locale("th");
@@ -9,6 +11,10 @@ dayjs.locale("th");
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+const query = (sql, params) => {
+    return pool.query(sql, params);
+};
 
 const generateOrderCode = async () => {
     const orders = await Order.find();
@@ -18,6 +24,203 @@ const generateOrderCode = async () => {
     let code = `${prefix}${curdate}-${orderLength.toString().padStart(6, "0")}`;
     return code
 }
+
+function generateCode(length) {
+    return Math.random().toString(36).substring(2, 2 + length).toUpperCase();
+}
+
+async function generateCodeBonus() {
+    try {
+        const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_bonus/2')
+        //const {data} = await axios.get('https://maruayduaykan.com/api/db_code_bonus/2')
+        if (data) return data
+        else return generateCode(6)
+    }
+    catch(err) {
+        //console.log(err)
+        return generateCode(6)
+    }
+}
+
+async function generateCodePv() {
+    try {
+        const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_pv')
+        //const {data} = await axios.get('https://maruayduaykan.com/api/db_code_pv')
+        if (data) return data
+        else return generateCode(6)
+    }
+    catch(err) {
+        //console.log(err)
+        return generateCode(6)
+    }
+}
+
+const runUserWallet = async ({user_id, amount, code, order_pv, codeBonus}) => {
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const customerId = user_id;
+        
+        if (!customerId) {
+            return false;
+        }
+
+        const [customers] = await connection.query('SELECT * FROM customers WHERE id = ?', [customerId]);
+        if (customers.length === 0) {
+            return false;
+        }
+        const customer = customers[0];
+        const userAction = customers[0];
+        const wallet = parseFloat(customer.ewallet || 0);
+        const newWallet = wallet - amount;
+        let pv_upgrad_input = order_pv
+        let input_user_name_upgrad = userAction.user_name
+
+        let date = new Date();
+        date.setHours(date.getHours() + 7);
+
+        // run bonus ---------------------------------------------------
+        let reportBonusRegister = [];
+        let customerUsername = customer.introduce_id;
+        let qualificationId = customer.qualification_id || 'MC';
+
+        for (let i = 1; i <= 8; i++) {
+            const runDataUserQuery = `
+                SELECT *
+                FROM customers 
+                WHERE user_name = ?
+                FOR UPDATE
+            `;
+            const [runDataUsers] = await query(runDataUserQuery, [customerUsername]);
+            //console.log('runDataUser', runDataUsers[0])
+            console.log('customerUsername-', i, ' : ', customerUsername)
+            let runDataUser = runDataUsers[0];
+            if (!runDataUser) {
+                break;
+            }
+
+            qualificationId = runDataUser.qualification_id || 'MC';
+            let bonusPercent = 0;
+
+            if (i === 1) {
+                bonusPercent = 180;
+            } else if (i === 2) {
+                bonusPercent = 10;
+            } else if (i >= 3 && i <= 8) {
+                bonusPercent = 5;
+            }
+
+            let walletTotal = (pv_upgrad_input * bonusPercent) / 100;
+            let bonusAfterTax = walletTotal - (walletTotal * 3) / 100;
+
+            reportBonusRegister.push({
+                user_name: userAction.user_name,
+                name: `${userAction.name} ${userAction.last_name}`,
+                regis_user_name: input_user_name_upgrad,
+                regis_user_introduce_id: userAction.introduce_id,
+                regis_name: `${userAction.name} ${userAction.last_name}`,
+                user_name_g: runDataUser.user_name,
+                old_position: userAction.qualification_id,
+                new_position: userAction.qualification_id,
+                name_g: `${runDataUser.name} ${runDataUser.last_name}`,
+                qualification: qualificationId,
+                g: i,
+                pv: pv_upgrad_input,
+                code_bonus: codeBonus,
+                type: 'jangpv',
+                percen: bonusPercent,
+                bonus: qualificationId === 'MC' ? 0 : bonusAfterTax,
+                bonus_full: walletTotal,
+                tax_total: walletTotal * 0.03,
+            });
+
+            console.log('reportBonusRegister : ', i)
+
+            customerUsername = runDataUser.introduce_id;
+        }
+
+        const insertReportBonusRegisterQuery = `
+            INSERT INTO report_bonus_register 
+            (user_name, name, regis_user_name, regis_user_introduce_id, regis_name, user_name_g, old_position, new_position, name_g, qualification, g, pv, code_bonus, type, percen, bonus, bonus_full, tax_total)
+            VALUES ?
+        `;
+        const reportBonusRegisterValues = reportBonusRegister.map(item => [
+            item.user_name, item.name, item.regis_user_name, item.regis_user_introduce_id, item.regis_name, 
+            item.user_name_g, item.old_position, item.new_position, item.name_g, item.qualification, 
+            item.g, item.pv, item.code_bonus, item.type, item.percen, item.bonus, item.bonus_full, item.tax_total
+        ]);
+
+        await query(insertReportBonusRegisterQuery, [reportBonusRegisterValues]);
+        
+        const fastStarted = await runBonusFaststart(
+            codeBonus, input_user_name_upgrad, userAction, userAction, userAction.qualification_id , userAction.pv, pv_upgrad_input
+        )
+
+        if (!fastStarted) {
+            return false
+        }
+        
+        let codePv = await generateCodePv();
+        let bonusPercent = 0;
+        if (parseFloat(userAction.pv_upgrad)>= 1200) {
+            bonusPercent = 50;
+        } else {
+            bonusPercent = 30;
+        }
+        const jangPv = {
+            code: codePv,
+            code_order: code,
+            customer_username: userAction.user_name,
+            to_customer_username: input_user_name_upgrad,
+            old_position: userAction.qualification_id,
+            position: userAction.qualification_id,
+            bonus_percen: bonusPercent,
+            pv_old: userAction.pv,
+            pv: pv_upgrad_input,
+            pv_balance: userAction.pv,
+            wallet: amount,
+            old_wallet: userAction.ewallet,
+            wallet_balance: newWallet,
+            note_orther: 'สั่งซื้อสินค้าพาร์ทเนอร์',
+            type: '5',
+            status: 'Success',
+            type_app: 'app',
+        };
+
+        const insertJangPvQuery = `
+            INSERT INTO jang_pv (code, code_order, customer_username, to_customer_username, old_position, position, bonus_percen, pv_old, pv, pv_balance, wallet, old_wallet, wallet_balance, note_orther, type, status, type_app)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `;
+        const jangPvValues = [
+            jangPv.code,
+            jangPv.code_order,
+            jangPv.customer_username,
+            jangPv.to_customer_username,
+            jangPv.old_position,
+            jangPv.position,
+            jangPv.bonus_percen,
+            jangPv.pv_old,
+            jangPv.pv,
+            jangPv.pv_balance,
+            jangPv.wallet,
+            jangPv.old_wallet,
+            jangPv.wallet_balance,
+            jangPv.note_orther,
+            jangPv.type,
+            jangPv.status,
+            jangPv.type_app
+        ];
+
+        await query(insertJangPvQuery, jangPvValues);
+
+        return true
+    } catch (err) {
+        console.log(err);
+        return false
+    } finally {
+        if (connection) connection.release();
+    }
+};
 
 const useUserWallet = async ({user_id, amount, code}) => {
     let connection;
@@ -49,6 +252,7 @@ const useUserWallet = async ({user_id, amount, code}) => {
         if (!updatedUserEwallet.length || !updatedEwalletLog.length) {
             return false;
         }
+
         return true
     } catch (err) {
         console.log(err);
@@ -58,7 +262,7 @@ const useUserWallet = async ({user_id, amount, code}) => {
     }
 };
 
-const runBonusFaststart = async ({code_bonus, input_user_name_upgrad, user_action, data_user, position_update, pv_balance, pv_upgrad_total}) => {
+const runBonusFaststart = async (code_bonus, input_user_name_upgrad, user_action, data_user, position_update, pv_balance, pv_upgrad_total) => {
     try {
         await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000);
 
@@ -115,7 +319,7 @@ const runBonusFaststart = async ({code_bonus, input_user_name_upgrad, user_actio
                     wallet_g_user,
                     wallet_g_total,
                     10,
-                    `โบนัสขยายธุรกิจ รหัส ${value.user_name} แนะนำรหัส ${value.regis_user_name}`,
+                    `โบนัสซื้อสินค้าพาร์ทเนอร์ รหัส ${value.user_name}`,
                     new Date(),
                     new Date(),
                     2
@@ -155,7 +359,7 @@ const runBonusFaststart = async ({code_bonus, input_user_name_upgrad, user_actio
         }
 
         // Handle VVIP specific logic
-        if (position_update === 'VVIP') {
+        /*if (position_update === 'VVIP') {
             const jangPv = {
                 code: codePv,
                 customer_username: user_action.user_name,
@@ -230,19 +434,20 @@ const runBonusFaststart = async ({code_bonus, input_user_name_upgrad, user_actio
                 `, [position_update, pv_upgrad_total, pv_upgrad_total, data_user.user_name]);
             }
         } else {
+            const newPvUpgrade = parseFloat(data_user.pv_upgrad || 0) + parseFloat(pv_upgrad_total || 0);
             await query(`
                 UPDATE customers
-                SET qualification_id = ?, pv_upgrad = ?
+                SET pv_upgrad = ?
                 WHERE user_name = ?
-            `, [position_update, pv_upgrad_total, data_user.user_name]);
-        }
+            `, [newPvUpgrade, data_user.user_name]);
+        }*/
 
         await query('COMMIT');
 
-        return { status: 200, message: `แจงอัพเกรดรหัส ${data_user.user_name} สำเร็จ` };
+        return codePv;
     } catch (error) {
         await query('ROLLBACK');
-        return { status: 500, message: error.message };
+        return false;
     }
 };
 
@@ -273,18 +478,32 @@ exports.createOrderPartner = async (req, res) => {
     try {
         await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000);
         const code = await generateOrderCode();
+        //const codeBonus = await generateCodeBonus();
         const existShop = await Partner.findById(shop_id)
         if (!existShop) {
             return res.status(404).json({ message: "Shop not found", status: false })
         }
         const shop_username = existShop.customer_username
+        let total_commission = 0
+
+        const products = await Promise.all(line_product.map(async(product) => {
+            const prod = await PartnerProduct.findById(product.product_id)
+            total_commission += (prod.commission || 0) * (product.product_qty || 1)
+            return {
+                ...product,
+                commission: (prod.commission || 0) * (product.product_qty || 1)
+            }
+        }))
+
+        let total_income = net_price - total_commission
+
         const newOrder = new Order({
             code,
             buyer_id,
             buyer_username,
             shop_id,
             shop_username,
-            line_product,
+            line_product: products,
             total_qty,
             total_product_price,
             total_discount,
@@ -300,12 +519,20 @@ exports.createOrderPartner = async (req, res) => {
             net_price,
             status,
             to_address,
-            total_pv
+            total_pv,
+            total_commission,
+            total_income
         })
+        /* const useWallet = await useUserWallet({user_id: buyer_id, amount: net_price, code: code, order_pv: total_pv, codeBonus: codeBonus})
+        if (!useWallet) {
+            return res.status(500).json({ message: "Can't use user wallet", status: false })
+        } */
+
         const useWallet = await useUserWallet({user_id: buyer_id, amount: net_price, code: code})
         if (!useWallet) {
             return res.status(500).json({ message: "Can't use user wallet", status: false })
         }
+
         const savedOrder = await newOrder.save();
         return res.status(200).json({ message: "success", data: savedOrder, status: true })
     }
@@ -341,8 +568,23 @@ exports.updateOrderPartner = async (req, res) => {
     } = req.body
     const { id } = req.params
     try {
+        const codeBonus = await generateCodeBonus();
         const existOrder = await Order.findById(id)
         if(!existOrder) return res.status(404).json({ message: "Order not found", status: false })
+        if (status && status === 1) {
+            const runWallet = await runUserWallet({user_id: existOrder.buyer_id, amount: existOrder.net_price, code: existOrder.code, order_pv: existOrder.total_pv, codeBonus: codeBonus})
+            if (!runWallet) {
+                return res.status(500).json({ message: "Can't run wallet", status: false })
+            }
+
+            await Promise.all(existOrder.line_product.map(async(product) => {
+                const prod = await PartnerProduct.findById(product.product_id)
+                await PartnerProduct.findByIdAndUpdate(product.product_id, {
+                    stock: ((prod.stock) - (product.product_qty || 1)) || prod.stock,
+                    sold: ((prod.sold || 0) + (product.product_qty || 1)) || prod.sold
+                }, { new:true })
+            }))
+        }
         const updatedOrder = await Order.findByIdAndUpdate( id, {
             //code,
             //buyer_id,

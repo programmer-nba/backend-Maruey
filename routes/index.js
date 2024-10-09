@@ -31,8 +31,8 @@ router.get('/ping', async (req, res) => {
 })
 
 router.get('/version', async (req, res) => {
-  const last_version = "2.5"
-  const current_version = "2.6"
+  const last_version = "2.4"
+  const current_version = "2.5"
   const update = "05-10-2024"
   return res.status(200).json({
     status: true,

@@ -23,6 +23,7 @@ const orderSchema = new mongoose.Schema(
         net_price: { type: Number, default: 0 },
         status: { type: Number, default: 4 },
         to_address: { type: Object, default: null },
+        total_pv: { type: Number, default: 0 },
     },
     {
         timestamps: true

@@ -259,7 +259,7 @@ module.exports.getPartnerProducts = async (req, res) => {
                 ...product._doc,
                 images: formattedPrictures.sort((a, b) => a.desc - b.desc),
                 shop_name: shop.name,
-                pv: Math.floor(product.commission/8)
+                pv: parseFloat((product.commission*0.1).toFixed(2))
             }
         })
         const promisedProducts = await Promise.all(formattedProducts)

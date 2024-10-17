@@ -84,7 +84,8 @@ module.exports.createPartnerProduct = async (req, res) => {
         tags,
         stock,
         commission,
-        commission_percent
+        commission_percent,
+        pv
     } = req.body
     try {
         const code = await generateProductCode()
@@ -105,7 +106,8 @@ module.exports.createPartnerProduct = async (req, res) => {
             tags,
             stock,
             commission,
-            commission_percent
+            commission_percent,
+            pv
         })
 
         const existProduct = await PartnerProduct.findOne({ partner_id: partner_id, name: name })
@@ -187,7 +189,8 @@ module.exports.updatePartnerProduct = async (req, res) => {
         tags,
         stock,
         commission,
-        status
+        status,
+        pv
     } = req.body
     const { id } = req.params
     try {
@@ -220,6 +223,7 @@ module.exports.updatePartnerProduct = async (req, res) => {
             stock,
             commission: commission || existProduct.commission,
             status,
+            pv: pv || existProduct.pv
         }, { new: true })
 
         return res.status(200).json({ message: "สำเร็จ", data: updatedProduct, status: true })
@@ -258,8 +262,7 @@ module.exports.getPartnerProducts = async (req, res) => {
             return {
                 ...product._doc,
                 images: formattedPrictures.sort((a, b) => a.desc - b.desc),
-                shop_name: shop.name,
-                pv: parseFloat((product.commission*0.1).toFixed(2))
+                shop_name: shop.name
             }
         })
         const promisedProducts = await Promise.all(formattedProducts)

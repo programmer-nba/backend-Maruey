@@ -21,6 +21,7 @@ const partnerProductSchema = new mongoose.Schema(
     stars: { type: Number, default: 0 },
     commission: { type: Number, required: true },
     commission_percent: { type: Number, required: true },
+    pv: { type: Number, default: 0 },
   },
   {
     timestamps: true

@@ -77,7 +77,7 @@ app.use(prefix+'/reportsummarytoday',require('./routes/report/reportsummarytoday
 app.use(prefix+'/withdrawmoney',require('./routes/withdrawmoney/withdrawmoney'))
 
 //report
-app.use(prefix+'/report',require('./routes/report/report'))
+app.use(prefix + '/reports',require('./routes/report/report'))
 
 //report สินค้าตีกลับ
 app.use(prefix+'/reportreturnproduct',require('./routes/report/reportreturnproduct'))

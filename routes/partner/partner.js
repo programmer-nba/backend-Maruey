@@ -10,6 +10,8 @@ router.get('/:id', Partner.getPartnerById);
 router.get('/byusername/:username', Partner.getPartnerByUsername);
 router.put('/:id', Partner.updatePartner);
 
+router.get('/all/admin', Partner.getPartners);
+
 //เพิ่มรูปภาพบัญชี
 router.put('/addbankimage/:id',userAuth.adminandpartner,Partner.addimgbank);
 

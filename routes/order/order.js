@@ -13,6 +13,8 @@ router.post('/partner/all', Order.getUserOrdersPartner); // username
 //ดึงออเดอร์ตามไอดี
 router.get('/partner/:id', Order.getUserOrderPartner);
 
+router.get('/all/partner', Order.getOrders);
+
 //router.get('/test/',Order.test); 
 
 module.exports = router;

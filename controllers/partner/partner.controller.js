@@ -300,6 +300,15 @@ module.exports.getPartnerByUsername = async (req, res) => {
   }
 };
 
+module.exports.getPartners = async (req, res) => {
+  try {
+    const partners = await Partner.find().select("-__v");
+    return res.status(200).json({ status: true, data: partners });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 //แก้ไขข้อมูล Partner
 module.exports.edit = async (req, res) => {
   try {

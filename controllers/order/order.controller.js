@@ -640,3 +640,22 @@ exports.getUserOrderPartner = async (req, res) => {
         return res.status(500).json({ message: err.message })
     }
 }
+
+exports.getOrders = async (req, res) => {
+    try {
+        const orders = await Order.find();
+        const formatOrders = orders.map(async(order) => {
+            const _shop = await Partner.findById(order.shop_id).select("-__v -createdAt -updatedAt")
+            return {
+                ...order._doc,
+                _shop: _shop
+            }
+        })
+        const promisedOrders = await Promise.all(formatOrders)
+        return res.status(200).json({ message: "success", data: promisedOrders, status: true })
+    }
+    catch(err) {
+        console.log(err)
+        return res.status(500).json({ message: err.message })
+    }
+}

@@ -7,8 +7,11 @@ const Order = require("../../controllers/order/order.controller")
 router.post('/partner/create', Order.createOrderPartner);
 router.put('/partner/update/:id', Order.updateOrderPartner);
 
-//ดึงออเดอร์ทั้งหมด
+//ดึงออเดอร์ทั้งหมดของลุกค้า
 router.post('/partner/all', Order.getUserOrdersPartner); // username
+
+// ดึคงออเดอร์ทั้งหมดของร้านค้า
+router.post('/partner-shop/all', Order.getShopOrdersPartner); // username
 
 //ดึงออเดอร์ตามไอดี
 router.get('/partner/:id', Order.getUserOrderPartner);

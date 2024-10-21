@@ -247,7 +247,7 @@ const useUserWallet = async ({user_id, amount, code}) => {
         const updatedEwalletLog = await connection.query(
             `INSERT INTO ewallet (transaction_code, customers_id_fk, customer_username, amt, type, note_orther, status, old_balance, balance, receive_date, receive_time) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
-            [code, customerId, customer.user_name, amount, 4, 'สั่งซื้อสินค้าพาร์ทเนอร์', 2, wallet, newWallet, new Date(), date]
+            [code, customerId, customer.user_name, amount, 4, 'สั่งซื้อสินค้าพาร์ทเนอร์', 1, wallet, newWallet, new Date(), date]
         );
         if (!updatedUserEwallet.length || !updatedEwalletLog.length) {
             return false;
@@ -261,6 +261,64 @@ const useUserWallet = async ({user_id, amount, code}) => {
         if (connection) connection.release();
     }
 };
+
+const claimShopWallet = async ({user_name, amount, code}) => {
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const customerUsername = user_name;
+        
+        if (!customerUsername) {
+            return false;
+        }
+
+        const [customers] = await connection.query('SELECT * FROM customers WHERE user_name = ?', [customerUsername]);
+        if (customers.length === 0) {
+            return false;
+        }
+        const customer = customers[0];
+        const wallet = parseFloat(customer.ewallet || 0);
+        const newWallet = wallet + amount;
+
+        let date = new Date();
+        date.setHours(date.getHours() + 7);
+
+        const updatedUserEwallet = await connection.query('UPDATE customers SET ewallet = ? WHERE user_name = ?', [newWallet, customerUsername]);
+        
+        const updatedEwalletLog = await connection.query(
+            `INSERT INTO ewallet (transaction_code, customers_id_fk, customer_username, amt, type, note_orther, status, old_balance, balance, receive_date, receive_time) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, 
+            [code, customerUsername, customer.user_name, amount, 4, 'รับค่าสินค้าพาร์ทเนอร์', 2, wallet, newWallet, new Date(), date]
+        );
+        if (!updatedUserEwallet.length || !updatedEwalletLog.length) {
+            return false;
+        }
+
+        return true
+    } catch (err) {
+        console.log(err);
+        return false
+    } finally {
+        if (connection) connection.release();
+    }
+};
+
+const updateEwalletStatus = async (transaction_code) => {
+    let connection;
+    try {
+        connection = await pool.getConnection();
+        const updatedEwalletLog = await connection.query('UPDATE ewallet SET status = 2 WHERE transaction_code = ?', [transaction_code]);
+        if (!updatedEwalletLog.length) {
+            return false
+        }
+        return true
+    } catch (err) {
+        console.log(err);
+        return false
+    } finally {
+        if (connection) connection.release();
+    }
+}
 
 const runBonusFaststart = async (code_bonus, input_user_name_upgrad, user_action, data_user, position_update, pv_balance, pv_upgrad_total) => {
     try {
@@ -528,7 +586,7 @@ exports.createOrderPartner = async (req, res) => {
             return res.status(500).json({ message: "Can't use user wallet", status: false })
         } */
 
-        const useWallet = await useUserWallet({user_id: buyer_id, amount: net_price, code: code})
+        const useWallet = await useUserWallet({user_id: buyer_id, amount: net_price, code: code.replace('PMO', 'PNB')})
         if (!useWallet) {
             return res.status(500).json({ message: "Can't use user wallet", status: false })
         }
@@ -568,15 +626,9 @@ exports.updateOrderPartner = async (req, res) => {
     } = req.body
     const { id } = req.params
     try {
-        const codeBonus = await generateCodeBonus();
         const existOrder = await Order.findById(id)
         if(!existOrder) return res.status(404).json({ message: "Order not found", status: false })
-        if (status && status === 1) {
-            const runWallet = await runUserWallet({user_id: existOrder.buyer_id, amount: existOrder.net_price, code: existOrder.code, order_pv: existOrder.total_pv, codeBonus: codeBonus})
-            if (!runWallet) {
-                return res.status(500).json({ message: "Can't run wallet", status: false })
-            }
-
+        if (status === 1) {
             await Promise.all(existOrder.line_product.map(async(product) => {
                 const prod = await PartnerProduct.findById(product.product_id)
                 await PartnerProduct.findByIdAndUpdate(product.product_id, {
@@ -585,6 +637,25 @@ exports.updateOrderPartner = async (req, res) => {
                 }, { new:true })
             }))
         }
+
+        if (status === 5 && existOrder.status === 2) {
+            const codeBonus = existOrder.code.replace('PMO', 'PNU');
+            const runWallet = await runUserWallet({user_id: existOrder.buyer_id, amount: existOrder.net_price, code: existOrder.code, order_pv: existOrder.total_pv, codeBonus: codeBonus})
+            if (!runWallet) {
+                return res.status(500).json({ message: "Can't run wallet", status: false })
+            }
+
+            const claimWallet = await claimShopWallet({user_name: existOrder.shop_username, amount: existOrder.total_income, code: existOrder.code.replace('PMO', 'PNS')})
+            if (!claimWallet) {
+                return res.status(500).json({ message: "Can't claim wallet", status: false })
+            }
+
+            const updateEwallet = await updateEwalletStatus(existOrder.code.replace('PMO', 'PNB'))
+            if (!updateEwallet) {
+                return res.status(500).json({ message: "Can't update ewallet status", status: false })
+            }
+        }
+
         const updatedOrder = await Order.findByIdAndUpdate( id, {
             //code,
             //buyer_id,
@@ -621,6 +692,18 @@ exports.getUserOrdersPartner = async (req, res) => {
     const { username } = req.body
     try {
         const orders = await Order.find({ buyer_username: username });
+        return res.status(200).json({ message: "success", data: orders, status: true })
+    }
+    catch(err) {
+        console.log(err)
+        return res.status(500).json({ message: err.message })
+    }
+}
+
+exports.getShopOrdersPartner = async (req, res) => {
+    const { username } = req.body
+    try {
+        const orders = await Order.find({ shop_username: username });
         return res.status(200).json({ message: "success", data: orders, status: true })
     }
     catch(err) {

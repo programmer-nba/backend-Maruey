@@ -1245,3 +1245,174 @@ exports.jangPvCashBack = async (req, res) => {
         return res.status(400).send('เงื่อนไขการแจง PV ไม่ถูกต้อง');
     }
 };
+
+exports.pvTransfer = async (req, res) => {
+    const { from_username, pv_transfer, to_username } = req.body;
+    try {
+        if (parseFloat(pv_transfer) <= 0) {
+            return res.status(400).send('จํานวน PV ต้องมากกว่า 0');
+        }
+        await query('BEGIN');
+        await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000);
+        let codePv = await generateCodePv();
+
+        const [from_users] = await query('SELECT * FROM customers WHERE user_name = ?', [from_username]);
+        const from_user = from_users[0]
+        const from_balancePV = parseFloat((from_user.pv || 0)) - parseFloat(pv_transfer);
+        
+        const [to_users] = await query('SELECT * FROM customers WHERE user_name = ?', [to_username]);
+        const to_user = to_users[0]
+        const to_balancePV = parseFloat((to_user.pv || 0)) + parseFloat(pv_transfer);
+        
+        const jangPv = {
+            code: codePv,
+            customer_username: from_username,
+            customer_username_transfer: from_username,
+            to_customer_username: to_username,
+            pv_old: parseFloat(from_user.pv),
+            pv_old_recive: parseFloat(to_user.pv),
+            pv: pv_transfer,
+            pv_balance: from_balancePV,
+            pv_balance_recive: to_balancePV,
+            type: '6',
+            status: 'Success',
+            type_app: 'app',
+        };
+
+        await query('UPDATE customers SET pv = ? WHERE user_name = ?', [ from_balancePV , from_username]);
+        await query('UPDATE customers SET pv = ? WHERE user_name = ?', [ to_balancePV , to_username]);
+        await query(`INSERT INTO jang_pv ?`, [jangPv]);
+        
+        await query('COMMIT');
+        return res.status(200).json({
+            message: 'success',
+            status: true
+        });
+
+    } catch (error) {
+        await query('ROLLBACK');
+        console.log(error);
+        return res.status(500).send(error.message);
+    }
+}
+
+exports.ewalletTransfer = async (req, res) => {
+    const { from_username, ewallet_transfer, to_username } = req.body;
+    try {
+        if (parseFloat(ewallet_transfer) <= 0) {
+            return res.status(400).send('จํานวนเงินต้องมากกว่า 0');
+        }
+        await query('BEGIN');
+        await delay(Math.floor(Math.random() * (5000 - 1000 + 1)) + 1000);
+        let codeWallet = generateCode(10);
+
+        const [from_users] = await query('SELECT * FROM customers WHERE user_name = ?', [from_username]);
+        const from_user = from_users[0]
+        const from_balanceEwallet = parseFloat((from_user.ewallet || 0)) - parseFloat(ewallet_transfer);
+        
+        const [to_users] = await query('SELECT * FROM customers WHERE user_name = ?', [to_username]);
+        const to_user = to_users[0]
+        const to_balanceEwallet = parseFloat((to_user.ewallet || 0)) + parseFloat(ewallet_transfer);
+        
+        const ewallet_1 = {
+            transaction_code: codeWallet,
+            customers_id_fk: from_user.id,
+            customer_username: from_username,
+            customers_id_tranfer: from_user.id,
+            customers_username_tranfer: from_username,
+            amt: ewallet_transfer,
+            customers_id_receive: to_user.id,
+            customers_name_receive: to_username,
+            type: "2",
+            type_tranfer: "1",
+            status: "2",
+            old_balance: parseFloat(from_user.ewallet || 0),
+            balance: from_balanceEwallet,
+            balance_recive: to_balanceEwallet,
+            receive_date: new Date(),
+            receive_time: new Date(),
+        };
+        //console.log(ewallet_1)
+
+        const ewallet_2 = {
+            transaction_code: codeWallet,
+            customers_id_fk: to_user.id,
+            customer_username: to_username,
+            customers_id_tranfer: from_user.id,
+            customers_username_tranfer: from_username,
+            amt: ewallet_transfer,
+            customers_id_receive: to_user.id,
+            customers_name_receive: to_username,
+            type: "2",
+            type_tranfer: "2",
+            status: "2",
+            old_balance: parseFloat(to_user.ewallet || 0),
+            balance: to_balanceEwallet,
+            balance_recive: to_balanceEwallet,
+            receive_date: new Date(),
+            receive_time: new Date(),
+        };
+
+        await query('UPDATE customers SET ewallet = ? WHERE user_name = ?', [ from_balanceEwallet , from_username]);
+        await query('UPDATE customers SET ewallet = ? WHERE user_name = ?', [ to_balanceEwallet , to_username]);
+
+        await query(
+            `INSERT INTO ewallet 
+            (transaction_code, customers_id_fk, customer_username, customers_id_tranfer, 
+            customers_username_tranfer, amt, customers_id_receive, customers_name_receive, 
+            type, type_tranfer, status, old_balance, balance, balance_recive) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                ewallet_1.transaction_code,
+                ewallet_1.customers_id_fk,
+                ewallet_1.customer_username,
+                ewallet_1.customers_id_tranfer,
+                ewallet_1.customers_username_tranfer,
+                ewallet_1.amt,
+                ewallet_1.customers_id_receive,
+                ewallet_1.customers_name_receive,
+                ewallet_1.type,
+                ewallet_1.type_tranfer,
+                ewallet_1.status,
+                ewallet_1.old_balance,
+                ewallet_1.balance,
+                ewallet_1.balance_recive,
+            ]
+        );
+        
+        await query(
+            `INSERT INTO ewallet 
+            (transaction_code, customers_id_fk, customer_username, customers_id_tranfer, 
+            customers_username_tranfer, amt, customers_id_receive, customers_name_receive, 
+            type, type_tranfer, status, old_balance, balance, balance_recive) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                ewallet_2.transaction_code,
+                ewallet_2.customers_id_fk,
+                ewallet_2.customer_username,
+                ewallet_2.customers_id_tranfer,
+                ewallet_2.customers_username_tranfer,
+                ewallet_2.amt,
+                ewallet_2.customers_id_receive,
+                ewallet_2.customers_name_receive,
+                ewallet_2.type,
+                ewallet_2.type_tranfer,
+                ewallet_2.status,
+                ewallet_2.old_balance,
+                ewallet_2.balance,
+                ewallet_2.balance_recive,
+            ]
+        );
+        
+        await query('COMMIT');
+        return res.status(200).json({
+            message: 'success',
+            status: true
+        });
+
+    } catch (error) {
+        await query('ROLLBACK');
+        console.log(error);
+        return res.status(500).send(error.message);
+    }
+}

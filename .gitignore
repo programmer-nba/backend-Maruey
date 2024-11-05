@@ -31,3 +31,4 @@ coverage
 test_1
 
 .env
+.uploads

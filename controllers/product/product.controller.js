@@ -329,7 +329,7 @@ module.exports.getall = async (req, res) => {
         //const get = await Product.find().populate('product_partner_id').populate('product_category').populate('product_type');
         return res.status(200).json({
             message:"success",
-            version:'2.5',
+            version:'2.6',
             status:true
         });
     }catch(error){

@@ -212,7 +212,7 @@ module.exports.updatePartner = async (req, res) => {
   }
 };
 
-module.exports = activePartnersStatus = async() => {
+module.exports.activePartnersStatus = async() => {
   try {
     const initPartners = await Partner.find({ status: 4 })
     if (!initPartners || initPartners.length === 0) {

@@ -212,6 +212,27 @@ module.exports.updatePartner = async (req, res) => {
   }
 };
 
+module.exports = activePartnersStatus = async() => {
+  try {
+    const initPartners = await Partner.find({ status: 4 })
+    if (!initPartners || initPartners.length === 0) {
+      console.log('No partner need to update status');
+      return
+    }
+    const updatedPartners = await Promise.all(initPartners.map(async (partner) => {
+      const updatedPartner = await Partner.findByIdAndUpdate(partner._id, { status: 1 })
+      if (!updatedPartner) {
+        return false;
+      }
+      return true;
+    })) || [];
+    console.log(`Updated ${updatedPartners.filter(x => x)?.length}`);
+    return 
+  } catch (err) {
+    console.log(err.message);
+  }
+}
+
 //ดึงข้อมูลทั้งหมด
 module.exports.getall = async (req, res) => {
   try {

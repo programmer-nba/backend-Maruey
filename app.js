@@ -5,6 +5,7 @@ var logger = require('morgan');
 const cors = require('cors')
 require('dotenv').config()
 const mongoose = require('mongoose')
+const { activePartnersStatus } = require('./controllers/partner/partner.controller')
 
 process.env.TZ='UTC'
 var app = express();
@@ -99,6 +100,10 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     next();
 });
+
+setInterval(() => {
+    activePartnersStatus()
+}, 1800000)
 
 const port = process.env.PORT || 5713;
 app.listen(port,()=>{

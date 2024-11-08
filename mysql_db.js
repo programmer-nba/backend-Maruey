@@ -1,7 +1,7 @@
 const mysql = require('mysql2/promise');
 
 // test
-const pool = mysql.createPool({
+/*const pool = mysql.createPool({
   host: '203.146.170.155',
   user: 'zgolf4_mlm',
   password: 'mWxHMaxJM6xYJjVEN8hy',
@@ -9,10 +9,10 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
-});
+});*/
 
 // production
-/*const pool = mysql.createPool({
+const pool = mysql.createPool({
   host: '203.146.127.157',
   user: 'mlm_new',
   password: '54ChXicPzyPstz3p',
@@ -20,7 +20,7 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
-});*/
+});
 
 
 pool.on('connection', (connection) => {

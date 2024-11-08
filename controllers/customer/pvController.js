@@ -15,8 +15,8 @@ function generateCode(length) {
 
 async function generateCodeBonus() {
     try {
-        const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_bonus/2')
-        //const {data} = await axios.get('https://maruayduaykan.com/api/db_code_bonus/2')
+        //const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_bonus/2')
+        const {data} = await axios.get('https://maruayduaykan.com/api/db_code_bonus/2')
         if (data) return data
         else return generateCode(6)
     }
@@ -28,8 +28,8 @@ async function generateCodeBonus() {
 
 async function generateCodePv() {
     try {
-        const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_pv')
-        //const {data} = await axios.get('https://maruayduaykan.com/api/db_code_pv')
+        //const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_pv')
+        const {data} = await axios.get('https://maruayduaykan.com/api/db_code_pv')
         if (data) return data
         else return generateCode(6)
     }

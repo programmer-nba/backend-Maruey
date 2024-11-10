@@ -15,8 +15,8 @@ function generateCode(length) {
 
 async function generateCodeBonus() {
     try {
-        //const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_bonus/2')
-        const {data} = await axios.get('https://maruayduaykan.com/api/db_code_bonus/2')
+        const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_bonus/2')
+        //const {data} = await axios.get('https://maruayduaykan.com/api/db_code_bonus/2')
         if (data) return data
         else return generateCode(6)
     }
@@ -28,8 +28,8 @@ async function generateCodeBonus() {
 
 async function generateCodePv() {
     try {
-        //const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_pv')
-        const {data} = await axios.get('https://maruayduaykan.com/api/db_code_pv')
+        const {data} = await axios.get('https://golf4.orangeworkshop.info/mlm/api/db_code_pv')
+        //const {data} = await axios.get('https://maruayduaykan.com/api/db_code_pv')
         if (data) return data
         else return generateCode(6)
     }
@@ -1281,7 +1281,21 @@ exports.pvTransfer = async (req, res) => {
 
         await query('UPDATE customers SET pv = ? WHERE user_name = ?', [ from_balancePV , from_username]);
         await query('UPDATE customers SET pv = ? WHERE user_name = ?', [ to_balancePV , to_username]);
-        await query(`INSERT INTO jang_pv ?`, [jangPv]);
+        await query('INSERT INTO jang_pv (`code`, `customer_username`, `customers_username_tranfer`, `to_customer_username`, `pv_old`, `pv_old_recive`, `pv`, `pv_balance`, `pv_balance_recive`, `type`, `status`, `type_app`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [
+            jangPv.code,
+            jangPv.customer_username,
+            jangPv.customer_username_transfer,
+            jangPv.to_customer_username,
+            jangPv.pv_old,
+            jangPv.pv_old_recive,
+            jangPv.pv,
+            jangPv.pv_balance,
+            jangPv.pv_balance_recive,
+            jangPv.type,
+            jangPv.status,
+            jangPv.type_app
+        ]);
+        
         
         await query('COMMIT');
         return res.status(200).json({

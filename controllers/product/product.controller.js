@@ -269,7 +269,7 @@ module.exports.getPartnerProducts = async (req, res) => {
         return res.status(200).json({ message: "success", data: promisedProducts, status: true })
     }
     catch(err) {
-        console.loglog(err)
+        console.log(err)
         return res.status(500).json({
             message: "Server Error"
         })

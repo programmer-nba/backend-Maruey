@@ -1308,7 +1308,7 @@ exports.pvTransfer = async (req, res) => {
         console.log(error);
         return res.status(500).send(error.message);
     }
-}
+};
 
 exports.ewalletTransfer = async (req, res) => {
     const { from_username, ewallet_transfer, to_username } = req.body;
@@ -1429,4 +1429,4 @@ exports.ewalletTransfer = async (req, res) => {
         console.log(error);
         return res.status(500).send(error.message);
     }
-}
+};
